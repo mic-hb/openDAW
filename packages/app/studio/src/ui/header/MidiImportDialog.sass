@@ -1,0 +1,240 @@
+.midi-import-backdrop
+    position: fixed
+    inset: 0
+    background: rgba(0, 0, 0, 0.7)
+    backdrop-filter: blur(4px)
+    z-index: 999
+
+component
+    position: fixed
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
+    z-index: 1000
+    background: var(--automidi-surface-1, #1c1c1e)
+    border: 1px solid var(--automidi-border, #38383a)
+    border-radius: 16px
+    padding: 1.5em 2em 2em 2em
+    color: #ffffff
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8)
+    width: 680px
+    max-width: 90vw
+    height: min(90vh, 1000px)
+    display: flex
+    flex-direction: column
+    overflow: hidden
+    font-family: var(--automidi-font-sans, system-ui)
+
+    .midi-import-headline
+        flex-shrink: 0
+
+    [data-mount]
+        flex: 1 1 auto
+        min-height: 0
+        display: flex
+        flex-direction: column
+        overflow: hidden
+
+    .import-hub
+        flex: 1 1 auto
+        min-height: 0
+        display: flex
+        flex-direction: column
+        overflow: hidden
+
+    .scrollable-body
+        flex: 1 1 auto
+        min-height: 0
+        overflow-y: auto
+        margin: 0 -0.5em
+        padding: 0 0.5em
+
+    .settings-form
+        flex-shrink: 0
+
+    .midi-import-buttons
+        flex-shrink: 0
+
+    .midi-import-headline
+        display: flex
+        flex-direction: row
+        align-items: center
+        gap: 0.4em
+        margin: 0 0 0.8em 0
+        font-size: 1.1em
+        font-weight: 600
+
+    .midi-import-buttons
+        display: flex
+        justify-content: flex-end
+        align-items: center
+        gap: 0.6em
+        margin-top: 1em
+        padding-top: 0.8em
+        border-top: 1px solid var(--automidi-border-soft, rgba(255, 255, 255, 0.08))
+
+        .auto-gain-status
+            margin-right: auto
+            font-size: 0.75em
+            color: rgba(80, 200, 120, 0.85)
+            min-width: 12em
+
+            &:empty
+                display: none
+
+        > button
+            background: rgba(255, 255, 255, 0.08)
+            border: 1px solid rgba(255, 255, 255, 0.15)
+            border-radius: 6px
+            color: rgba(255, 255, 255, 0.85)
+            padding: 0.45em 1.2em
+            font-size: 0.85em
+            cursor: pointer
+            transition: background-color 0.15s, color 0.15s
+            font-family: inherit
+
+            &:hover
+                background: rgba(255, 255, 255, 0.15)
+                color: white
+
+            &.primary
+                background: rgba(10, 132, 255, 0.85)
+                border-color: rgba(10, 132, 255, 1)
+                color: white
+
+                &:hover
+                    background: rgb(10, 132, 255)
+
+    .import-hub
+        display: flex
+        flex-direction: column
+        gap: 0
+
+    .drop-zone
+        border: 2px dashed rgba(255, 255, 255, 0.2)
+        border-radius: 8px
+        padding: 40px 20px
+        text-align: center
+        cursor: pointer
+        transition: background-color 0.2s, border-color 0.2s
+        background-color: rgba(255, 255, 255, 0.02)
+        margin-bottom: 16px
+
+        &:hover, &.drag-over
+            background-color: rgba(255, 255, 255, 0.05)
+            border-color: rgba(255, 255, 255, 0.4)
+
+        .icon
+            font-size: 32px
+            opacity: 0.5
+            margin-bottom: 12px
+
+        .text
+            color: rgba(255, 255, 255, 0.7)
+            font-size: 14px
+
+    // Transport controls bar (play/stop for the whole preview)
+    .transport-bar
+        display: flex
+        align-items: center
+        gap: 12px
+        padding: 8px 0 10px 0
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08)
+        margin-bottom: 2px
+
+        .transport-play-btn
+            display: flex
+            align-items: center
+            gap: 6px
+            padding: 5px 14px 5px 10px
+            background: rgba(255, 255, 255, 0.08)
+            border: 1px solid rgba(255, 255, 255, 0.15)
+            border-radius: 6px
+            color: rgba(255, 255, 255, 0.85)
+            font-size: 13px
+            cursor: pointer
+            transition: background-color 0.15s, color 0.15s
+            flex-shrink: 0
+
+            &:hover
+                background: rgba(255, 255, 255, 0.15)
+                color: white
+
+            &.active
+                background: rgba(80, 200, 120, 0.2)
+                border-color: rgba(80, 200, 120, 0.4)
+                color: rgb(80, 200, 120)
+
+        .transport-control
+            display: flex
+            align-items: center
+            gap: 6px
+            font-size: 11px
+            color: rgba(255, 255, 255, 0.55)
+            text-transform: uppercase
+            letter-spacing: 0.5px
+            flex-shrink: 0
+
+            label
+                font-weight: 600
+
+            .transport-input
+                background: rgba(0, 0, 0, 0.3)
+                border: 1px solid rgba(255, 255, 255, 0.15)
+                color: rgba(255, 255, 255, 0.9)
+                border-radius: 4px
+                outline: none
+                padding: 3px 6px
+                font-size: 12px
+
+                &:focus
+                    border-color: rgba(255, 255, 255, 0.4)
+
+            .bpm-input
+                width: 56px
+
+            .meter-input
+                width: 56px
+
+        .master-volume
+            margin-left: auto
+            min-width: 180px
+            flex: 1
+            max-width: 240px
+
+    .settings-form
+        display: flex
+        flex-direction: column
+        gap: 12px
+        margin-bottom: 0
+        padding-top: 14px
+        border-top: 1px solid rgba(255, 255, 255, 0.08)
+
+        .setting-row
+            display: flex
+            align-items: center
+            justify-content: space-between
+            font-size: 13px
+            color: rgba(255, 255, 255, 0.8)
+
+            select
+                background: rgba(0, 0, 0, 0.3)
+                border: 1px solid rgba(255, 255, 255, 0.2)
+                color: white
+                padding: 4px 8px
+                border-radius: 4px
+                outline: none
+
+                &:focus
+                    border-color: rgba(255, 255, 255, 0.5)
+
+            input[type="checkbox"]
+                width: 16px
+                height: 16px
+                cursor: pointer
+
+    .loading-state
+        padding: 40px 20px
+        text-align: center
+        color: rgba(255, 255, 255, 0.6)
+        font-size: 14px

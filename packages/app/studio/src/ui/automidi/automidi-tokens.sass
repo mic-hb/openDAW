@@ -1,0 +1,78 @@
+// Token overrides scoped to <html class="automidi">. These mirror
+// AutoMIDI's tailwind config (slate-9xx for surfaces, indigo-4xx for
+// accent) and add automidi-specific tokens (mode colors, layout
+// heights, radius scale). Components that want to opt in reference
+// these via `var(--automidi-...)` from inline styles or from .sass
+// files that re-export them.
+
+html.automidi
+  --automidi-bg: #000000
+  --automidi-surface-1: #1C1C1E
+  --automidi-surface-2: #2C2C2E
+  --automidi-surface-3: #38383A
+  --automidi-border: #38383A
+  --automidi-border-soft: #2C2C2E
+
+  --automidi-text-1: #FFFFFF
+  --automidi-text-2: #EBEBF5
+  --automidi-text-3: #EBEBF599
+
+  --automidi-accent: #007AFF
+  --automidi-accent-2: #5AC8FA
+  --automidi-danger: #FF3B30
+  --automidi-success: #34C759
+  --automidi-warning: #FFCC00
+
+  --automidi-mode-continuation: #34C759
+  --automidi-mode-infilling: #AF52DE
+  --automidi-mode-variation: #FF9500
+
+  --automidi-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif
+  --automidi-font-mono: "SF Mono", ui-monospace, monospace
+
+  --automidi-radius-sm: 6px
+  --automidi-radius-md: 8px
+  --automidi-radius-lg: 12px
+
+  // Track row accent (per-instrument-family palette, Apple vibrant colors)
+  --automidi-track-piano:           #AF52DE
+  --automidi-track-bass:            #007AFF
+  --automidi-track-brass:           #FF3B30
+  --automidi-track-woodwind:        #FF2D55
+  --automidi-track-strings:         #FF9500
+  --automidi-track-percussion:      #34C759
+  --automidi-track-guitar:          #FFCC00
+  --automidi-track-vocal:           #5AC8FA
+  --automidi-track-default:         #34C759
+
+  // Note block colors (chord-tone hierarchy)
+  --automidi-note-strong:           #ec4899
+  --automidi-note-medium:           #f59e0b
+  --automidi-note-soft:             #22c55e
+  --automidi-note-accent:           #6366f1
+  --automidi-note-passing:          #1e293b
+
+  // Layout sizing
+  --automidi-header-h:              56px
+  --automidi-footer-h:              28px
+  --automidi-track-row-h:           40px
+  --automidi-piano-key-w:           56px
+  --automidi-track-stripe-w:        4px
+  --automidi-grid-line:             rgba(255, 255, 255, 0.04)
+  --automidi-grid-line-strong:      rgba(255, 255, 255, 0.10)
+  --automidi-grid-bar:              rgba(255, 255, 255, 0.20)
+
+  // Typography sizing
+  --automidi-text-track-name:       13px
+  --automidi-text-section-label:    9px
+  --automidi-text-note-label:       10px
+
+  .automidi-track-stripe
+    position: absolute
+    left: 0
+    top: 0
+    bottom: 0
+    width: var(--automidi-track-stripe-w)
+    pointer-events: all
+    cursor: pointer
+    z-index: 1

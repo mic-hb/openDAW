@@ -1,0 +1,95 @@
+.overlay
+    position: fixed
+    inset: 0
+    background: rgba(0, 0, 0, 0.7)
+    backdrop-filter: blur(4px)
+    z-index: 999
+
+component
+    position: fixed
+    top: 50%
+    left: 50%
+    transform: translate(-50%, -50%)
+    z-index: 1000
+    background: var(--automidi-surface-1, #1c1c1e)
+    border: 1px solid var(--automidi-border, #38383a)
+    border-radius: 12px
+    padding: 1.5em 1.8em
+    color: #ffffff
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6)
+    width: 420px
+    max-width: 90vw
+    font-family: var(--automidi-font-sans, system-ui)
+
+    h2
+        margin: 0 0 0.4em 0
+        font-size: 1.1em
+        font-weight: 600
+
+    .description
+        margin: 0 0 1em 0
+        font-size: 0.85em
+        color: rgba(255, 255, 255, 0.7)
+        line-height: 1.4
+
+    .form
+        display: flex
+        flex-direction: column
+        gap: 0.7em
+        margin-bottom: 1.2em
+
+        label
+            display: flex
+            align-items: center
+            gap: 0.6em
+            font-size: 0.85em
+
+            > span:first-child
+                flex: 0 0 9em
+                color: rgba(255, 255, 255, 0.7)
+
+            .unit
+                color: rgba(255, 255, 255, 0.5)
+                font-size: 0.9em
+
+        select, input
+            flex: 1
+            background: rgba(0, 0, 0, 0.3)
+            border: 1px solid rgba(255, 255, 255, 0.15)
+            color: rgba(255, 255, 255, 0.9)
+            border-radius: 4px
+            padding: 0.35em 0.6em
+            font-size: 0.9em
+            font-family: inherit
+            outline: none
+
+            &:focus
+                border-color: rgba(10, 132, 255, 0.6)
+
+    .buttons
+        display: flex
+        justify-content: flex-end
+        gap: 0.6em
+
+        button
+            background: rgba(255, 255, 255, 0.08)
+            border: 1px solid rgba(255, 255, 255, 0.15)
+            border-radius: 6px
+            color: rgba(255, 255, 255, 0.85)
+            padding: 0.5em 1.2em
+            font-size: 0.9em
+            cursor: pointer
+            font-family: inherit
+            transition: background-color 0.15s, color 0.15s
+
+            &:hover
+                background: rgba(255, 255, 255, 0.15)
+                color: white
+
+            &.primary
+                background: rgba(10, 132, 255, 0.85)
+                border-color: rgba(10, 132, 255, 1)
+                color: white
+
+                &:hover
+                    background: rgb(10, 132, 255)
