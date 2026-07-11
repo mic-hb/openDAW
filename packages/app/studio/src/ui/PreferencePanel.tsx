@@ -12,7 +12,7 @@ import {installScrollbars} from "@/ui/components/Scrollbars"
 
 const className = Html.adoptStyleSheet(css, "PreferencePanel")
 
-type Primitive = boolean | number | string
+type Primitive = boolean | number | string | null
 
 export type NestedLabels<T> = {
     [K in keyof T]: T[K] extends Primitive

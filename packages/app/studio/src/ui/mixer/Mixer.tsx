@@ -96,6 +96,7 @@ export const Mixer = ({lifecycle, service}: Construct) => {
         })),
         project.rootBoxAdapter.audioUnits.catchupAndSubscribe({
             onAdd: (adapter: AudioUnitBoxAdapter) => {
+                if (service.hiddenAudioUnits.has(UUID.toString(adapter.box.address.uuid))) return;
                 const terminator = lifecycle.spawn()
                 const editor: HTMLElement = <ChannelStrip lifecycle={terminator} service={service} adapter={adapter}
                                                           compact={false}/>

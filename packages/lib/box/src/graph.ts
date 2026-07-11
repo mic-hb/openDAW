@@ -27,7 +27,7 @@ import {ObjectField} from "./object"
 import {Box} from "./box"
 import {Field} from "./field"
 import {ArrayField} from "./array"
-import {DeleteUpdate, FieldUpdate, NewUpdate, optimizeUpdates, PointerUpdate, PrimitiveUpdate, Update} from "./updates"
+import {DeleteUpdate, FieldUpdate, NewUpdate, PointerUpdate, PrimitiveUpdate, Update} from "./updates"
 import {Dispatchers, Propagation} from "./dispatchers"
 import {GraphEdges} from "./graph-edges"
 
@@ -97,13 +97,7 @@ export class BoxGraph<BoxMap = any> {
     abortTransaction(): void {
         assert(this.#inTransaction, "No transaction in progress")
         this.#rollback()
-        // Boxes recreated during the rollback (DeleteUpdate.inverse) defer their pointer updates.
-        // They must be resolved (resolvedTo), not discarded, or restored boxes keep unresolved pointers.
-        if (this.#deferredPointerUpdates.length > 0) {
-            this.#deferredPointerUpdates.forEach(({pointerField, update}) =>
-                this.#processPointerVertexUpdate(pointerField, update))
-            this.#deferredPointerUpdates.length = 0
-        }
+        this.#deferredPointerUpdates.length = 0
         this.#finalizeTransaction()
     }
 
@@ -139,18 +133,11 @@ export class BoxGraph<BoxMap = any> {
         assert(!this.#constructingBox, "Cannot construct box while other box is constructing")
         if (isDefined(constructor)) {
             this.#constructingBox = true
-            const result = tryCatch(() => constructor(box))
+            constructor(box)
             this.#constructingBox = false
-            if (result.status === "failure") {
-                this.#purgeFailedConstruction(box)
-                throw result.error
-            }
         }
         const added = this.#boxes.add(box)
-        if (!added) {
-            this.#purgeFailedConstruction(box)
-            return panic(`${box.name} ${box.address.toString()} already staged`)
-        }
+        assert(added, () => `${box.name} ${box.address.toString()} already staged`)
         const update = new NewUpdate(box.address.uuid, box.name, box.toArrayBuffer())
         if (!this.#rollingBack) {this.#transactionUpdates.push(update)}
         this.#updateListeners.proxy.onUpdate(update)
@@ -312,37 +299,12 @@ export class BoxGraph<BoxMap = any> {
             this.#transactionUpdates.push(update)
         }
         this.#deferredPointerUpdates.length = 0
-        // Phantom boxes (created AND deleted in this transaction) net to nothing, and their deferred
-        // pointer updates sit at the end of the list, out of chronological order — replaying them raw
-        // would resurrect edges on unstaged boxes. Collapse them first, like the undo path does.
-        const updates = optimizeUpdates(this.#transactionUpdates.splice(0))
-        // An update whose vertex is absent (e.g. the graph diverged through an external participant)
-        // has nothing to invert. Warn so unexpected occurrences stay visible in error reports.
-        for (let i = updates.length - 1; i >= 0; i--) {
-            const update = updates[i]
-            if ((update instanceof PointerUpdate || update instanceof PrimitiveUpdate)
-                && this.findVertex(update.address).isEmpty()) {
-                console.warn(`[BoxGraph] rollback skips ${update.type}-update, vertex not found at ${update.address.toString()}`)
-                continue
-            }
-            update.inverse(this)
-        }
+        const updates = this.#transactionUpdates.splice(0)
+        for (let i = updates.length - 1; i >= 0; i--) {updates[i].inverse(this)}
         this.#pendingDeferredNotifications.length = 0
         this.#edges.clearAffected()
         this.#pointerTransactionState.clear()
         this.#transactionUpdates.length = 0
-    }
-
-    // Cleanup after a box constructor threw (or staging failed): the box is not part of the graph,
-    // so its deferred pointer updates, outgoing edges and watch registrations must not leak.
-    #purgeFailedConstruction(box: Box): void {
-        for (let i = this.#deferredPointerUpdates.length - 1; i >= 0; i--) {
-            if (this.#deferredPointerUpdates[i].pointerField.box === box) {
-                this.#deferredPointerUpdates.splice(i, 1)
-            }
-        }
-        this.#edges.outgoingEdgesOf(box).forEach(([source]) => this.#edges.disconnect(source))
-        this.#edges.forgetVerticesOf(box)
     }
 
     findOrphans(rootBox: Box): ReadonlyArray<Box> {

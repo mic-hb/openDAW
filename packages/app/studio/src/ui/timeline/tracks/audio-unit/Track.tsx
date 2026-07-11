@@ -8,6 +8,7 @@ import {AudioUnitBoxAdapter, TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {ClipLane} from "@/ui/timeline/tracks/audio-unit/clips/ClipLane.tsx"
 import {RegionLane} from "@/ui/timeline/tracks/audio-unit/regions/RegionLane.tsx"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
+import {TrackStripeFromAdapter} from "@/ui/automidi/TrackStripe.tsx"
 
 const className = Html.adoptStyleSheet(css, "Track")
 
@@ -20,8 +21,10 @@ type Construct = {
 }
 
 export const Track = ({lifecycle, service, trackManager, audioUnitBoxAdapter, trackBoxAdapter}: Construct) => {
+    const stripe = TrackStripeFromAdapter(trackBoxAdapter, lifecycle, service)
     const element: HTMLElement = (
         <div className={className}>
+            {stripe}
             <TrackHeader lifecycle={lifecycle}
                          service={service}
                          audioUnitBoxAdapter={audioUnitBoxAdapter}

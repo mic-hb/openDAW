@@ -2,7 +2,9 @@
   "extends": "@opendaw/typescript-config/base.json",
   "compilerOptions": {
     "lib": [
-      "ESNext"
+      "ESNext",
+      "DOM",
+      "WebWorker"
     ],
     "outDir": "./dist",
     "rootDir": "./src"

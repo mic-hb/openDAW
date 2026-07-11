@@ -14,7 +14,7 @@ import {
 } from "@opendaw/lib-std"
 import {AudioData, ppqn} from "@opendaw/lib-dsp"
 import {ApparatDeviceBox, SpielwerkDeviceBox, WerkstattDeviceBox} from "@opendaw/studio-boxes"
-import {Communicator, Messenger, Promises, Wait} from "@opendaw/lib-runtime"
+import {Communicator, Messenger, Wait} from "@opendaw/lib-runtime"
 import {AnimationFrame} from "@opendaw/lib-dom"
 import {
     EngineCommands,
@@ -27,15 +27,13 @@ import {
     OfflineEngineInitializeConfig,
     OfflineEngineProtocol,
     OfflineEngineRenderConfig
-, ScriptCompiler} from "@opendaw/studio-adapters"
+} from "@opendaw/studio-adapters"
 import {Project} from "./project"
 import {AudioWorklets} from "./AudioWorklets"
 import {MIDIReceiver} from "./midi"
 import type {SoundFont2} from "soundfont2"
 
 let workerUrl: Option<string> = Option.None
-let variantWorker: Option<{url: string, attachment: Record<string, unknown>}> = Option.None
-let variantPolicy: () => boolean = () => false
 
 export class OfflineEngineRenderer {
     static install(url: string): void {
@@ -43,39 +41,18 @@ export class OfflineEngineRenderer {
         workerUrl = Option.wrap(url)
     }
 
-    // An alternative engine worker (e.g. the WASM engine) speaking the same OfflineEngineProtocol;
-    // `attachment` travels to it as `config.variant` (e.g. the artifacts base url).
-    static installVariant(url: string, attachment: Record<string, unknown>): void {
-        console.debug(`OfflineEngineVariantUrl: '${url}'`)
-        variantWorker = Option.wrap({url, attachment})
-    }
-
     static getWorkerUrl(): string {
         return workerUrl.unwrap("OfflineEngineWorkerUrl is missing (call 'install' first)")
     }
 
-    static hasVariant(): boolean {return variantWorker.nonEmpty()}
-
-    /// The DEFAULT for renders that do not pass `variant` explicitly (freeze, consolidation): installed by
-    /// the studio's engine toggle so background renders follow the engine the user hears.
-    static installVariantPolicy(policy: () => boolean): void {variantPolicy = policy}
-
     static async create(source: Project,
                         optExportConfiguration: Option<ExportConfiguration>,
-                        sampleRate: int = 48_000,
-                        variant?: boolean,
-                        abortSignal?: AbortSignal
+                        sampleRate: int = 48_000
     ): Promise<OfflineEngineRenderer> {
-        variant ??= variantPolicy()
         const numStems = ExportConfiguration.countStems(optExportConfiguration)
         if (numStems === 0) {return panic("Nothing to export")}
-        if (isDefined(abortSignal) && abortSignal.aborted) {return Promise.reject(Errors.AbortError)}
-
         const numberOfChannels = numStems * 2
-        const optVariant = variant
-            ? Option.wrap(variantWorker.unwrap("No variant engine installed (call 'installVariant' first)"))
-            : Option.None
-        const worker = new Worker(optVariant.mapOr(entry => entry.url, this.getWorkerUrl()), {type: "module"})
+        const worker = new Worker(this.getWorkerUrl(), {type: "module"})
         const messenger = Messenger.for(worker)
         const protocol = Communicator.sender<OfflineEngineProtocol>(
             messenger.channel("offline-engine"),
@@ -170,11 +147,8 @@ export class OfflineEngineRenderer {
         const {port, sab} = terminator.own(MIDIReceiver.create(() => 0,
             (deviceId, data, relativeTimeInMs) => source.receivedMIDIFromEngine(deviceId, data, relativeTimeInMs)))
 
-        // The SAME wrapper as the live worklet path (`ScriptCompiler.wrap`): the registry entry must carry
-        // `params`/`samples` too — the WASM script bridge reads them (the TS worker ignores the extras).
         const loadScriptDevice = async (code: string,
                                         headerPattern: RegExp,
-                                        headerTag: string,
                                         registryName: string,
                                         functionName: string,
                                         uuid: string): Promise<void> => {
@@ -182,50 +156,45 @@ export class OfflineEngineRenderer {
             if (match === null) {return}
             const userCode = code.slice(match[0].length)
             const update = parseInt(match[3])
-            await protocol.addModule(ScriptCompiler.wrap({headerTag, registryName, functionName}, uuid, update, userCode))
-        }
-        const initialize = async (): Promise<void> => {
-            for (const box of source.boxGraph.boxes()) {
-                if (box instanceof WerkstattDeviceBox) {
-                    await loadScriptDevice(box.code.getValue(),
-                        /^\/\/ @werkstatt (\w+) (\d+) (\d+)\n/,
-                        "werkstatt", "werkstattProcessors", "werkstatt",
-                        UUID.toString(box.address.uuid))
-                } else if (box instanceof SpielwerkDeviceBox) {
-                    await loadScriptDevice(box.code.getValue(),
-                        /^\/\/ @spielwerk (\w+) (\d+) (\d+)\n/,
-                        "spielwerk", "spielwerkProcessors", "spielwerk",
-                        UUID.toString(box.address.uuid))
-                } else if (box instanceof ApparatDeviceBox) {
-                    await loadScriptDevice(box.code.getValue(),
-                        /^\/\/ @apparat (\w+) (\d+) (\d+)\n/,
-                        "apparat", "apparatProcessors", "apparat",
-                        UUID.toString(box.address.uuid))
+            await protocol.addModule(`
+                if (typeof globalThis.openDAW === "undefined") { globalThis.openDAW = {} }
+                if (typeof globalThis.openDAW.${registryName} === "undefined") { globalThis.openDAW.${registryName} = {} }
+                globalThis.openDAW.${registryName}["${uuid}"] = {
+                    update: ${update},
+                    create: (function ${functionName}() {
+                        ${userCode}
+                        return Processor
+                    })()
                 }
+            `)
+        }
+        for (const box of source.boxGraph.boxes()) {
+            if (box instanceof WerkstattDeviceBox) {
+                await loadScriptDevice(box.code.getValue(),
+                    /^\/\/ @werkstatt (\w+) (\d+) (\d+)\n/,
+                    "werkstattProcessors", "werkstatt",
+                    UUID.toString(box.address.uuid))
+            } else if (box instanceof SpielwerkDeviceBox) {
+                await loadScriptDevice(box.code.getValue(),
+                    /^\/\/ @spielwerk (\w+) (\d+) (\d+)\n/,
+                    "spielwerkProcessors", "spielwerk",
+                    UUID.toString(box.address.uuid))
+            } else if (box instanceof ApparatDeviceBox) {
+                await loadScriptDevice(box.code.getValue(),
+                    /^\/\/ @apparat (\w+) (\d+) (\d+)\n/,
+                    "apparatProcessors", "apparat",
+                    UUID.toString(box.address.uuid))
             }
-            await protocol.initialize(channel.port1, {
-                sampleRate,
-                numberOfChannels,
-                processorsUrl: AudioWorklets.processorsUrl,
-                syncStreamBuffer: reader.buffer,
-                controlFlagsBuffer,
-                project: source.toArrayBuffer(),
-                exportConfiguration: optExportConfiguration.unwrapOrUndefined(),
-                variant: optVariant.mapOr(entry => entry.attachment, undefined)
-            })
         }
-        const {promise: abortPromise, reject: rejectOnAbort} = Promise.withResolvers<never>()
-        const onAbort = (): void => rejectOnAbort(Errors.AbortError)
-        if (isDefined(abortSignal)) {abortSignal.addEventListener("abort", onAbort, {once: true})}
-        const result = await Promises.tryCatch(Promise.race([initialize(), abortPromise]))
-        if (isDefined(abortSignal)) {abortSignal.removeEventListener("abort", onAbort)}
-        if (result.status === "rejected") {
-            terminator.terminate()
-            channel.port1.close()
-            channel.port2.close()
-            worker.terminate()
-            return Promise.reject(result.error)
-        }
+        await protocol.initialize(channel.port1, {
+            sampleRate,
+            numberOfChannels,
+            processorsUrl: AudioWorklets.processorsUrl,
+            syncStreamBuffer: reader.buffer,
+            controlFlagsBuffer,
+            project: source.toArrayBuffer(),
+            exportConfiguration: optExportConfiguration.unwrapOrUndefined()
+        })
         engineCommands.setupMIDI(port, sab)
         return new OfflineEngineRenderer(
             worker,
@@ -243,10 +212,8 @@ export class OfflineEngineRenderer {
                        optExportConfiguration: Option<ExportConfiguration>,
                        progress: DefaultObservableValue<number>,
                        abortSignal?: AbortSignal,
-                       sampleRate: int = 48_000,
-                       variant?: boolean
+                       sampleRate: int = 48_000
     ): Promise<AudioData> {
-        variant ??= variantPolicy()
         const {timelineBox: {loopArea: {enabled}}, boxGraph} = source
         const wasEnabled = enabled.getValue()
         boxGraph.beginTransaction()
@@ -260,14 +227,13 @@ export class OfflineEngineRenderer {
                 : {startPosition: r.start, endPosition: r.end}
         })
         const maxDurationSeconds = source.tempoMap.intervalToSeconds(startPosition, endPosition) + 30
-        const result = await Promises.tryCatch(
-            this.create(source, optExportConfiguration, sampleRate, variant, abortSignal).then(renderer =>
-                renderer.render({maxDurationSeconds}, startPosition, endPosition, progress, abortSignal)))
+        const renderer = await this.create(source, optExportConfiguration, sampleRate)
+        const result = await renderer.render(
+            {maxDurationSeconds}, startPosition, endPosition, progress, abortSignal)
         boxGraph.beginTransaction()
         enabled.setValue(wasEnabled)
         boxGraph.endTransaction()
-        if (result.status === "rejected") {return Promise.reject(result.error)}
-        return result.value
+        return result
     }
 
     readonly #worker: Worker
@@ -342,10 +308,6 @@ export class OfflineEngineRenderer {
                  progress: DefaultObservableValue<number>,
                  abortSignal?: AbortSignal
     ): Promise<AudioData> {
-        if (isDefined(abortSignal) && abortSignal.aborted) {
-            this.terminate()
-            return Promise.reject(Errors.AbortError)
-        }
         const {promise, reject, resolve} = Promise.withResolvers<AudioData>()
         let cancelled = false
         const span = endPosition - startPosition
@@ -356,14 +318,15 @@ export class OfflineEngineRenderer {
                     Math.max(0, this.#engineStateIO.object.position - startPosition) / span))
             })
             : Terminable.Empty
-        const onAbort = (): void => {
-            polling.terminate()
-            this.stop()
-            this.terminate()
-            cancelled = true
-            reject(Errors.AbortError)
+        if (isDefined(abortSignal)) {
+            abortSignal.onabort = () => {
+                polling.terminate()
+                this.stop()
+                this.terminate()
+                cancelled = true
+                reject(Errors.AbortError)
+            }
         }
-        if (isDefined(abortSignal)) {abortSignal.addEventListener("abort", onAbort, {once: true})}
         while (!await this.#engineCommands.queryLoadingComplete()) {
             await Wait.timeSpan(TimeSpan.millis(100))
         }
@@ -371,7 +334,6 @@ export class OfflineEngineRenderer {
         await this.play()
         this.#protocol.render(config).then(channels => {
             polling.terminate()
-            if (isDefined(abortSignal)) {abortSignal.removeEventListener("abort", onAbort)}
             if (cancelled) {return}
             progress.setValue(1.0)
             this.terminate()
@@ -383,7 +345,6 @@ export class OfflineEngineRenderer {
             resolve(audioData)
         }).catch(reason => {
             polling.terminate()
-            if (isDefined(abortSignal)) {abortSignal.removeEventListener("abort", onAbort)}
             if (!cancelled) {
                 this.terminate()
                 reject(reason)

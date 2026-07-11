@@ -60,15 +60,16 @@ export namespace PreferencesPageLabels {
         "storage": {
             label: "Storage",
             fields: {
-                "auto-delete-orphaned-samples": "Auto-delete orphaned samples"
+                "auto-delete-orphaned-samples": "Auto-delete orphaned samples on exit"
             }
         },
         "midi-import": {
             label: "MIDI Import",
             fields: {
-                "mode": "Mode",
-                "auto-assign-gm": "Auto-assign GM programs",
-                "auto-assign-soundfont": "Auto-assign soundfonts"
+                "mode": "Import Mode",
+                "auto-assign-gm": "Auto-assign GM Instruments",
+                "auto-assign-soundfont": "Auto-assign Default Soundfont",
+                "default-soundfont-uuid": "Default Soundfont UUID"
             }
         }
     }

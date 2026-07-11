@@ -63,7 +63,7 @@ class Channel implements Messenger {
         this.#messages = messages
         this.#name = name
         this.#subscription = messages.subscribe(data => {
-            if (isDefined(data) && data.__id__ === "42" && data.channel === name) {
+            if ("__id__" in data && data.__id__ === "42" && "message" in data && "channel" in data && data.channel === name) {
                 this.#notifier.notify(data.message)
             }
         })

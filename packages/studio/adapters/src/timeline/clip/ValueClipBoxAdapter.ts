@@ -19,6 +19,7 @@ import {ClipBoxAdapter, ClipBoxAdapterVisitor} from "../ClipBoxAdapter"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {ValueEventCollectionBoxAdapter} from "../collection/ValueEventCollectionBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
+import {LogicTrackColors, Pointers} from "@opendaw/studio-enums"
 import {ValueClipBox} from "@opendaw/studio-boxes"
 import {ValueEventBoxAdapter} from "../event/ValueEventBoxAdapter"
 
@@ -108,7 +109,14 @@ export class ValueClipBoxAdapter implements ClipBoxAdapter<ValueEventCollectionB
     get indexField(): Int32Field {return this.#box.index}
     get duration(): ppqn {return this.#box.duration.getValue()}
     get mute(): boolean {return this.#box.mute.getValue()}
-    get hue(): int {return this.#box.hue.getValue()}
+    get hue(): int {
+        return this.trackBoxAdapter
+            .map(track => {
+                const colorIndex = track.color.getValue()
+                return colorIndex < LogicTrackColors.length ? LogicTrackColors[colorIndex].h : 0
+            })
+            .unwrapOrElse(this.#box.hue.getValue())
+    }
     get hasCollection() {return !this.optCollection.isEmpty()}
     get events(): Option<EventCollection<ValueEventBoxAdapter>> {
         return this.optCollection.map(collection => collection.events)

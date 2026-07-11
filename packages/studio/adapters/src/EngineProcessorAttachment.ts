@@ -11,7 +11,6 @@ export type EngineProcessorAttachment = {
     project: ArrayBufferLike
     exportConfiguration?: ExportConfiguration
     options?: ProcessorOptions
-    variant?: Record<string, unknown> // structured-clonable extras for an alternative engine processor (EngineVariant)
 }
 
 export type ExportStemConfiguration = {

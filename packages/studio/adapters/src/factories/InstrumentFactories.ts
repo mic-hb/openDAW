@@ -162,11 +162,19 @@ export namespace InstrumentFactories {
         create: (boxGraph: BoxGraph<BoxIO.TypeMap>,
                  host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
                  name: string,
-                 icon: IconSymbol): SoundfontDeviceBox => SoundfontDeviceBox.create(boxGraph, UUID.generate(), box => {
-            box.label.setValue(name)
-            box.icon.setValue(IconSymbol.toName(icon))
-            box.host.refer(host)
-        })
+                 icon: IconSymbol,
+                 attachment?: { uuid: UUID.String, name: string }): SoundfontDeviceBox => {
+            const fileBox = attachment
+                ? boxGraph.findBox<SoundfontFileBox>(UUID.parse(attachment.uuid)).unwrapOrElse(() =>
+                    SoundfontFileBox.create(boxGraph, UUID.parse(attachment.uuid), b => b.fileName.setValue(attachment.name)))
+                : undefined
+            return SoundfontDeviceBox.create(boxGraph, UUID.generate(), box => {
+                box.label.setValue(name)
+                box.icon.setValue(IconSymbol.toName(icon))
+                box.host.refer(host)
+                if (fileBox) {box.file.refer(fileBox)}
+            })
+        }
     }
 
     export const Apparat: InstrumentFactory<void, ApparatDeviceBox> = {

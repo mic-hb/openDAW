@@ -85,7 +85,7 @@ export class MenuItem<DATA extends MenuData = MenuData> {
     }
 
     readonly #data: DATA
-    readonly #options: MenuItemOptions
+    readonly #options?: MenuItemOptions
     readonly #permanentChildren: MenuItem[]
     readonly #runtimeChildren: MenuItem[]
     readonly #collectors: Array<Procedure<MenuCollector>>
@@ -101,7 +101,7 @@ export class MenuItem<DATA extends MenuData = MenuData> {
 
     constructor(data: DATA, options?: MenuItemOptions) {
         this.#data = data
-        this.#options = options ?? {}
+        this.#options = options
         this.#selectable = options?.selectable ?? true
         this.#hidden = options?.hidden ?? false
         this.#separatorBefore = options?.separatorBefore ?? false
@@ -115,7 +115,7 @@ export class MenuItem<DATA extends MenuData = MenuData> {
     get hidden(): boolean {return this.#hidden}
     get selectable(): boolean {return this.#selectable}
     get separatorBefore(): boolean {return this.#separatorBefore}
-    get className(): string {return this.#options.className ?? ""}
+    get className(): string | undefined {return this.#options?.className}
 
     get hasChildren(): boolean {
         return this.#permanentChildren.length > 0 || this.#runtimeChildrenProcedure.nonEmpty() || this.#collectors.length > 0

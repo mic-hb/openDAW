@@ -154,7 +154,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                     }
                 },
                 some: clip => {
-                    if (clip.mute || !isInstanceOf(clip, AudioClipBoxAdapter)) {return}
+                    if (!isInstanceOf(clip, AudioClipBoxAdapter)) {return}
                     const file = clip.file
                     const optData = file.getOrCreateLoader().data
                     if (optData.isEmpty()) {return}

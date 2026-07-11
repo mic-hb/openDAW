@@ -1,17 +1,21 @@
 @use "@/mixins"
 @use "@/colors"
 
-$ACTIVE: hsl(210, 90%, 30%)
-$PARENT: hsla(210, 90%, 30%, 0.5)
+$ACTIVE: var(--automidi-accent)
+$PARENT: var(--automidi-accent-2)
 
-component
+html.automidi component
   @include mixins.floating
+  background-color: var(--automidi-surface-1)
+  border: 1px solid var(--automidi-border)
+  border-radius: var(--automidi-radius-md)
   position: fixed
   pointer-events: all
   flex-direction: column
   border-collapse: collapse
-  color: var(--color-bright)
+  color: var(--automidi-text-1)
   min-width: 12em
+  font-family: var(--automidi-font-sans)
 
   &:after
     content: ""
@@ -44,13 +48,16 @@ component
       display: flex
       pointer-events: inherit
 
+      &.search-hidden
+        display: none !important
+
       &.selected > div.default
         color: white
         background-color: $PARENT
 
       &:hover > div.default
-        color: white
-        background-color: $ACTIVE
+        color: var(--automidi-text-1)
+        background-color: var(--automidi-surface-3)
 
         > div.shortcut
           opacity: inherit
@@ -59,7 +66,7 @@ component
         display: flex
 
       &:not(.selectable)
-        color: var(--color-dark)
+        color: var(--automidi-text-3)
         pointer-events: none
 
       > div.header
@@ -72,7 +79,7 @@ component
         white-space: nowrap
         color: color-mix(in srgb, var(--color) 75%, transparent)
         background-color: color-mix(in srgb, var(--color) 5%, transparent)
-        --color: var(--color-blue)
+        --color: var(--automidi-accent)
 
         > div.icon-space
           display: none
@@ -87,7 +94,7 @@ component
         white-space: nowrap
         color: color-mix(in srgb, var(--color) 75%, transparent)
         background-color: color-mix(in srgb, var(--color) 5%, transparent)
-        --color: var(--color-blue)
+        --color: var(--automidi-accent)
 
         > input[type="range"]
           -webkit-appearance: none
@@ -130,6 +137,7 @@ component
         > div.value
           min-width: 2em
           text-align: right
+          font-family: var(--automidi-font-mono)
 
         > div.unit
           min-width: 2em
@@ -140,7 +148,7 @@ component
         display: flex
         column-gap: 0.25em
         align-items: center
-        border-radius: 0.25em
+        border-radius: var(--automidi-radius-sm)
         margin: 0 0.5em
         padding: 0 0.5em 0 0.25em
         white-space: nowrap
@@ -185,7 +193,7 @@ component
       width: calc(100% - 1.5em)
       height: 0
       border: 0
-      border-top: 1px solid rgba(white, 0.07)
+      border-top: 1px solid var(--automidi-border-soft)
       pointer-events: none
 
   > div.scroll
@@ -194,7 +202,7 @@ component
     justify-content: center
     flex: 1 0 1.5em
     width: 100%
-    color: var(--color-gray)
+    color: var(--automidi-text-3)
 
     &:hover
-      color: var(--color-bright)
+      color: var(--automidi-text-1)

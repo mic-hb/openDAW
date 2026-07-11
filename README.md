@@ -155,7 +155,7 @@ evolves.
 
 #### 2026/Q2
 
-- [X] WASM Audio-Engine
+- [ ] WASM Audio-Engine
 - [ ] Polish UI
 
 #### 2026/Q3

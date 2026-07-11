@@ -1,12 +1,13 @@
 @use "@/colors"
 
-component
+html.automidi component
   display: flex
   flex-direction: column
   position: relative
   overflow: hidden
   flex: 0 0 0
-  border-radius: 1px
+  border-radius: var(--automidi-radius-sm)
+  font-family: var(--automidi-font-sans)
 
   &.horizontal.closed
     > header
@@ -38,8 +39,8 @@ component
     display: flex
     align-items: center
     gap: 0.375em
-    color: var(--color-gray)
-    @include colors.panel-background-bright
+    color: var(--automidi-text-2)
+    background-color: var(--automidi-surface-3)
 
     > span
       font-size: 0.875em
@@ -69,15 +70,15 @@ component
       display: flex
       align-items: center
       justify-content: center
-      @include colors.panel-background
+      background-color: var(--automidi-surface-1)
 
       > span
         font-size: 0.625em
         white-space: nowrap
-        color: var(--color-dark)
+        color: var(--automidi-text-3)
 
     > *
       $padding: 8px
-      border-top: $padding solid var(--color-panel-background)
-      border-left: $padding solid var(--color-panel-background)
-      border-right: $padding solid var(--color-panel-background)
+      border-top: $padding solid var(--automidi-surface-1)
+      border-left: $padding solid var(--automidi-surface-1)
+      border-right: $padding solid var(--automidi-surface-1)

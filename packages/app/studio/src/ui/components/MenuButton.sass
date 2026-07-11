@@ -1,4 +1,4 @@
-component
+html.automidi component
   --color-active: var(--color)
 
   appearance: none
@@ -12,8 +12,9 @@ component
   outline: none
   border: none
   background: none
-  color: var(--color)
+  color: var(--color, var(--automidi-text-1))
   font: inherit
+  font-family: var(--automidi-font-sans)
   pointer-events: all
   cursor: pointer
 
@@ -45,17 +46,17 @@ component
     column-gap: 0.25em
 
   &.framed
-    border-radius: 0.25em
-    border: 0.5px solid var(--color)
-    box-shadow: 0 0 3px -1px var(--color)
+    border-radius: var(--automidi-radius-md)
+    border: 0.5px solid var(--color, var(--automidi-border))
+    box-shadow: 0 0 3px -1px var(--color, var(--automidi-accent))
     min-height: 1.5em
 
     > label
       padding: 0 0.25em 0 0.5em
 
   &.active
-    color: var(--color-active)
+    color: var(--color-active, var(--automidi-accent))
 
     &.framed
-      border: 0.5px solid var(--color-active)
-      box-shadow: 0 0 3px -1px var(--color-active)
+      border: 0.5px solid var(--color-active, var(--automidi-accent))
+      box-shadow: 0 0 3px -1px var(--color-active, var(--automidi-accent))

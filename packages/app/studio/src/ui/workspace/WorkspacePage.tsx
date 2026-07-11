@@ -4,6 +4,8 @@ import {createElement, PageContext, PageFactory} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {Html} from "@opendaw/lib-dom"
 import {WorkspaceBuilder} from "@/ui/workspace/WorkspaceBuilder"
+import {FloatingVariationSelector} from "@/ui/automidi/FloatingVariationSelector"
+import {AutomidiIntegrationMenu} from "@/ui/automidi/AutomidiIntegrationMenu"
 
 const className = Html.adoptStyleSheet(css, "WorkspacePage")
 
@@ -16,5 +18,8 @@ export const WorkspacePage: PageFactory<StudioService> = ({lifecycle, service}: 
         screenLifeTime.terminate()
         WorkspaceBuilder.buildScreen(screenLifeTime, service.panelLayout, main, owner.getValue(), service.roomAwareness)
     }))
-    return <div className={className}>{main}</div>
+    const wrapper = <div className={className}>{main}</div>
+    FloatingVariationSelector(service, wrapper)
+    AutomidiIntegrationMenu(service, wrapper)
+    return wrapper
 }

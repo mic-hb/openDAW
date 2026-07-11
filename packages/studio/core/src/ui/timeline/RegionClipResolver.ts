@@ -5,6 +5,7 @@ import {
     AudioRegionBoxAdapter,
     RegionEditing,
     TrackBoxAdapter,
+    TrackType,
     UnionAdapterTypes
 } from "@opendaw/studio-adapters"
 import {RegionModifyStrategies} from "./RegionModifyStrategies"
@@ -56,6 +57,11 @@ export class RegionClipResolver {
             asDefined(clipResolvers.get(index), `Cannot find clip resolver for index(${index})`)
                 .addMask(adapter)
         })
+        console.debug("[ClipResolver.fromSelection]", {
+            tracks: tracks.map(track => track.listIndex),
+            adapters: adapters.map(adapter => ({p: adapter.position, d: adapter.duration, c: adapter.complete})),
+            deltaIndex
+        })
         const tasks = Array.from(clipResolvers.values()).flatMap(resolver => resolver.#createSolver())
         return {
             postProcess: () => tasks.forEach(task => task()),
@@ -82,8 +88,20 @@ export class RegionClipResolver {
         for (let i = 1; i < array.length; i++) {
             const next = array[i]
             assert(next.duration > 0, `duration(${next.duration}) must be positive`)
-            assert(allowOverlap(prev) || prev.complete <= next.position,
-                `regions overlap: prev.complete(${prev.complete}) > next.position(${next.position})`)
+            if (!allowOverlap(prev) && prev.complete > next.position) {
+                console.error("[validateTrack] OVERLAP", JSON.stringify({
+                    track: TrackType[track.type],
+                    regions: array.map(region => ({
+                        p: region.position,
+                        d: region.duration,
+                        c: region.complete,
+                        sel: region.isSelected,
+                        type: region.toString()
+                    })),
+                    stack: new Error().stack
+                }))
+                return
+            }
             prev = next
         }
     }
@@ -127,11 +145,8 @@ export class RegionClipResolver {
         let current: Mask = sorted[0]
         for (let i = 1; i < sorted.length; i++) {
             const next = sorted[i]
-            // Check if the next mask overlaps or is adjacent to the current. Use the float32 boundary
-            // tolerance (see #1003): seconds-based masks carry ppqn drift, so two masks that should abut
-            // can sit a sub-ulp gap apart. Merging within tolerance prevents carving the ground region
-            // into a zero-width sliver between them (#287).
-            if (next.position <= current.complete + boundaryTolerance(current.complete)) {
+            // Check if the next mask overlaps or is adjacent to the current
+            if (next.position <= current.complete) {
                 // Merge: extend current to cover both ranges
                 current = {
                     type: "range",
@@ -170,9 +185,27 @@ export class RegionClipResolver {
     #createSolver(): Exec {
         const masks = RegionClipResolver.sortAndJoinMasks(this.#masks)
         const maxComplete = masks.reduce((max, mask) => Math.max(max, mask.complete), 0)
+        const allRegions = this.#ground.regions.collection.asArray()
         const tasks = RegionClipResolver.createTasksFromMasks(
             this.#ground.regions.collection.iterateRange(0, maxComplete),
             maxComplete, masks, this.#strategy.showOrigin())
+        if (tasks.length > 0) {
+            console.debug("[ClipResolver.#createSolver]", {
+                trackIndex: this.#ground.listIndex,
+                masks: masks.map(mask => ({p: mask.position, c: mask.complete})),
+                maxComplete,
+                showOrigin: this.#strategy.showOrigin(),
+                allRegions: allRegions.map(region => ({
+                    p: region.position, d: region.duration, c: region.complete, sel: region.isSelected
+                })),
+                tasks: tasks.map(task => {
+                    const base = {type: task.type, regionP: task.region.position, regionC: task.region.complete}
+                    if (task.type === "separate") {return {...base, begin: task.begin, end: task.end}}
+                    if (task.type === "start" || task.type === "complete") {return {...base, position: task.position}}
+                    return base
+                })
+            })
+        }
         this.#masks.length = 0
         return () => this.#executeTasks(tasks)
     }
@@ -185,50 +218,35 @@ export class RegionClipResolver {
         })
         sorted.forEach(task => {
             const {type, region} = task
+            const before = {p: region.position, d: region.duration, c: region.complete}
             switch (type) {
                 case "delete":
                     region.box.delete()
                     break
                 case "start":
-                    // Round the new start UP to an integer. `position` is Int32, so a fractional mask
-                    // boundary (seconds-based region) would truncate on store and desync from the Float32
-                    // loop fields, leaving the region overlapping the clip by the dropped fraction (#287).
-                    this.#trimStart(region, Math.ceil(task.position))
+                    if (UnionAdapterTypes.isLoopableRegion(region)) {
+                        const delta = task.position - region.position
+                        const oldDuration = region.duration
+                        const oldLoopOffset = region.loopOffset
+                        const oldLoopDuration = region.loopDuration
+                        region.position = region.position + delta
+                        region.duration = oldDuration - delta
+                        region.loopOffset = mod(oldLoopOffset + delta, oldLoopDuration)
+                    } else {
+                        return panic("Not yet implemented")
+                    }
                     break
                 case "complete":
-                    // Round the new end DOWN to an integer, for the same reason.
-                    this.#trimComplete(region, Math.floor(task.position))
+                    if (UnionAdapterTypes.isLoopableRegion(region)) {
+                        region.duration = task.position - task.region.position
+                    } else {
+                        return panic("Not yet implemented")
+                    }
                     break
-                case "separate": {
-                    const begin = Math.floor(task.begin)
-                    const end = Math.ceil(task.end)
-                    const leftEmpty = begin <= region.position
-                    const rightEmpty = end >= region.complete
-                    if (leftEmpty && rightEmpty) {region.box.delete()}
-                    else if (leftEmpty) {this.#trimStart(region, end)}
-                    else if (rightEmpty) {this.#trimComplete(region, begin)}
-                    else {RegionEditing.clip(region, begin, end)}
+                case "separate":
+                    RegionEditing.clip(region, task.begin, task.end)
                     break
-                }
             }
         })
-    }
-
-    #trimStart(region: AnyRegionBoxAdapter, position: ppqn): void {
-        if (!UnionAdapterTypes.isLoopableRegion(region)) {return panic("Not yet implemented")}
-        if (position >= region.complete) {return region.box.delete()}
-        const delta = position - region.position
-        const oldDuration = region.duration
-        const oldLoopOffset = region.loopOffset
-        const oldLoopDuration = region.loopDuration
-        region.position = position
-        region.duration = oldDuration - delta
-        region.loopOffset = mod(oldLoopOffset + delta, oldLoopDuration)
-    }
-
-    #trimComplete(region: AnyRegionBoxAdapter, complete: ppqn): void {
-        if (!UnionAdapterTypes.isLoopableRegion(region)) {return panic("Not yet implemented")}
-        if (complete <= region.position) {return region.box.delete()}
-        region.duration = complete - region.position
     }
 }

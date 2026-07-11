@@ -16,6 +16,7 @@ export const CaptureMidiButton = ({lifecycle, service}: Construct) => {
     const disabled = new DefaultObservableValue<boolean>(true)
     const button: HTMLElement = (
         <Button lifecycle={lifecycle}
+                className="menu-button"
                 disabled={disabled}
                 appearance={{
                     color: Colors.gray,

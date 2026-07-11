@@ -49,7 +49,7 @@ export const ClipsHeader = ({lifecycle, service}: Construct) => {
                     rootBoxAdapter.audioUnits.adapters()
                         .forEach(unit => unit.tracks.values()
                             .forEach(track => track.clips.collection.getAdapterByIndex(index)
-                                .ifSome(clip => clipsIds.push(clip.uuid)))) // muted clips launch too (silently)
+                                .ifSome(clip => {if (!clip.mute) {clipsIds.push(clip.uuid)}})))
                     engine.scheduleClipPlay(clipsIds)
                 }),
                 Events.subscribe(stopIcon, "pointerdown", () => {

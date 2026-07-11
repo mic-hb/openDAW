@@ -1,20 +1,20 @@
-component
+html.automidi component
   display: contents
 
-.automation-indicator
+html.automidi .automation-indicator
   position: absolute
   pointer-events: none
   border-radius: 2px
-  background-color: rgba(white, 0.02)
+  background-color: var(--automidi-surface-2)
 
   &.automated
-    box-shadow: 0 0 1px 0 var(--color-blue)
+    box-shadow: 0 0 1px 0 var(--automidi-accent)
 
   &.midi
-    box-shadow: 0 0 1px 0 var(--color-orange)
+    box-shadow: 0 0 1px 0 var(--automidi-warning)
 
   &.modulated
-    box-shadow: 0 0 1px 0 var(--color-green)
+    box-shadow: 0 0 1px 0 var(--automidi-success)
 
   &.external
-    box-shadow: 0 0 1px 0 var(--color-purple)
+    box-shadow: 0 0 1px 0 var(--automidi-mode-infilling)
