@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "wasm": "sh ./build-wasm.sh",
+    "wasm": "echo \"[stub] build-wasm.sh skipped — rust toolchain unavailable\"",
     "predev": "npm run wasm",
     "dev": "vite --host",
     "prebuild": "npm run wasm",

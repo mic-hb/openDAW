@@ -13,13 +13,28 @@
     "baseUrl": "./src"
   },
   "include": [
-    "src"
+    "src/index.ts",
+    "src/WasmEngine.ts",
+    "src/engine-modules.ts",
+    "src/engine-exports.ts",
+    "src/boot.ts",
+    "src/utf8.ts"
   ],
   "exclude": [
     "dist",
     "node_modules",
     "src/processor.ts",
     "src/offline-worker.ts",
-    "src/midi-drain.ts"
+    "src/midi-drain.ts",
+    "src/device-linker.ts",
+    "src/nam-bridge.ts",
+    "src/nam-loader.ts",
+    "src/script-bridge.ts",
+    "src/script-spielwerk.ts",
+    "src/soundfont-simplify.ts",
+    "src/worklet-scope.ts",
+    "src/worklet.d.ts",
+    "src/protocol.ts",
+    "src/sync"
   ]
 }

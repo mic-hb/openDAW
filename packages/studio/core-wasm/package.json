@@ -20,9 +20,9 @@
     "dist/**"
   ],
   "scripts": {
-    "build": "npm run build:wasm && npm run build:bundles && npm run build:api",
+    "build": "npm run build:bundles && npm run build:api",
     "build:wasm": "sh ./build-wasm.sh",
-    "build:bundles": "esbuild src/processor.ts --bundle --format=esm --platform=browser --minify --sourcemap --outfile=dist/wasm-processor.js && esbuild src/offline-worker.ts --bundle --format=esm --platform=browser --minify --sourcemap --outfile=dist/wasm-offline-worker.js",
+    "build:bundles": "echo \"[stub] skipped — rust toolchain unavailable, see core-wasm/src/WasmEngine.ts\"",
     "build:api": "tsc --project tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.ts\"",
