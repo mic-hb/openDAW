@@ -579,10 +579,10 @@ export class StudioService implements ProjectEnv {
 
     #listenPreferences(): void {
         StudioPreferences.catchupAndSubscribe(value =>
-            Dragging.usePointerLock = value && Browser.isChrome(), "pointer", "dragging-use-pointer-lock")
+            Dragging.usePointerLock = value === true && Browser.isChrome(), "pointer", "dragging-use-pointer-lock")
         StudioPreferences.catchupAndSubscribe(value =>
-            document.body.classList.toggle("experimental-visible", value), "debug", "enable-beta-features")
+            document.body.classList.toggle("experimental-visible", value === true), "debug", "enable-beta-features")
         StudioPreferences.catchupAndSubscribe(value =>
-            document.body.classList.toggle("help-hidden", !value), "visibility", "visible-help-hints")
+            document.body.classList.toggle("help-hidden", value !== true), "visibility", "visible-help-hints")
     }
 }

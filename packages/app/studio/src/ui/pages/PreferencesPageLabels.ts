@@ -62,6 +62,14 @@ export namespace PreferencesPageLabels {
             fields: {
                 "auto-delete-orphaned-samples": "Auto-delete orphaned samples"
             }
+        },
+        "midi-import": {
+            label: "MIDI Import",
+            fields: {
+                "mode": "Mode",
+                "auto-assign-gm": "Auto-assign GM programs",
+                "auto-assign-soundfont": "Auto-assign soundfonts"
+            }
         }
     }
 
