@@ -1,18 +1,20 @@
-import {readdirSync, readFileSync, writeFileSync} from "fs"
+import {readFileSync, writeFileSync} from "fs"
 import {resolve} from "path"
-import {defineConfig} from "vite"
+import {defineConfig, loadEnv} from "vite"
 import crossOriginIsolation from "vite-plugin-cross-origin-isolation"
 import viteCompression from "vite-plugin-compression"
 import {BuildInfo} from "./src/BuildInfo"
 import {existsSync} from "node:fs"
 
-export default defineConfig(({command}) => {
+export default defineConfig(({command, mode}) => {
     const uuid = generateUUID()
     console.debug(uuid)
 
     const env = process.env.NODE_ENV as BuildInfo["env"]
     const date = Date.now()
     const certsExist = existsSync(resolve(__dirname, "../../../certs/localhost-key.pem"))
+    const viteEnv = loadEnv(mode, process.cwd(), "")
+    const apiTarget = viteEnv.AUTOMIDI_API_URL ?? "http://localhost:8000"
 
     // Determine base path for production CI builds
     const isCI = process.env.CI === "true"
@@ -74,6 +76,15 @@ export default defineConfig(({command}) => {
             },
             hmr: {
                 overlay: false
+            },
+            proxy: {
+                "/api": {
+                    target: apiTarget,
+                    changeOrigin: true,
+                    rewrite: (path: string) => path,
+                    proxyTimeout: 600_000,
+                    timeout: 600_000
+                }
             }
         },
         preview: {
@@ -103,44 +114,11 @@ export default defineConfig(({command}) => {
                 }
             },
             {
-                // The WASM engine binaries (built by @opendaw/studio-core-wasm's build-wasm.sh into its
-                // dist/wasm/) served under /wasm-engine/: live from the package dist in dev (so a Rust rebuild
-                // is picked up without restarting), copied into the bundle at build. When they are absent
-                // (e.g. a CI runner without the Rust toolchain) the studio still builds; the engine toggle
-                // then reports the WASM engine as unavailable.
-                name: "wasm-engine-assets",
-                configureServer(server) {
-                    const sourceDir = resolve(__dirname, "../../studio/core-wasm/dist")
-                    server.middlewares.use("/wasm-engine", (req, res, next) => {
-                        const name = (req.url ?? "").split("?")[0].replace(/^\//, "")
-                        const file = resolve(sourceDir, name)
-                        if (!isWasmEngineAsset(name) || !existsSync(file)) {return next()}
-                        res.setHeader("Content-Type", "application/wasm")
-                        res.end(readFileSync(file))
-                    })
-                },
-                generateBundle() {
-                    const sourceDir = resolve(__dirname, "../../studio/core-wasm/dist")
-                    if (!existsSync(resolve(sourceDir, "wasm"))) {
-                        console.warn("wasm-engine-assets: no artifacts found, skipping")
-                        return
-                    }
-                    const walk = (relative: string): ReadonlyArray<string> =>
-                        readdirSync(resolve(sourceDir, relative), {withFileTypes: true}).flatMap(entry =>
-                            entry.isDirectory() ? walk(`${relative}/${entry.name}`) : [`${relative}/${entry.name}`])
-                    walk("wasm").filter(isWasmEngineAsset).forEach(name => this.emitFile({
-                        type: "asset",
-                        fileName: `wasm-engine/${name}`,
-                        source: readFileSync(resolve(sourceDir, name))
-                    }))
-                }
-            },
-            {
                 name: "spa",
                 configureServer(server) {
                     server.middlewares.use((req, res, next) => {
                         const url: string | undefined = req.url
-                        if (url !== undefined && url.indexOf(".") === -1 && !url.startsWith("/@vite/")) {
+                        if (url !== undefined && url.indexOf(".") === -1 && !url.startsWith("/@vite/") && !url.startsWith("/api/")) {
                             if (url === "/overlay-preview") {
                                 const previewPath = resolve(__dirname, "overlay-preview.html")
                                 res.end(readFileSync(previewPath))
@@ -157,10 +135,6 @@ export default defineConfig(({command}) => {
         ]
     }
 })
-
-// The artifacts live under public/wasm/ (engine.wasm + sine.wasm) and public/wasm/plugins/ (device_*.wasm).
-const isWasmEngineAsset = (name: string): boolean =>
-    name.startsWith("wasm/") && name.endsWith(".wasm") && !name.includes("..")
 
 const generateUUID = () => {
     const format = crypto.getRandomValues(new Uint8Array(16))

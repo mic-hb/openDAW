@@ -25,14 +25,15 @@ type Construct = {
     stretch?: boolean
     pointer?: boolean
     groupId?: string
+    className?: string
 }
 
 export const MenuButton =
-    ({root, onInit, style, appearance, horizontal, stretch, pointer, groupId}: Construct, children: JsxValue) => {
+    ({root, onInit, style, appearance, horizontal, stretch, pointer, groupId, className: extraClass}: Construct, children: JsxValue) => {
         let current: Option<Menu> = Option.None
         const button: HTMLButtonElement = (
             <button onInit={onInit}
-                    className={Html.buildClassList(className,
+                    className={Html.buildClassList(className, extraClass,
                         appearance?.framed && "framed", appearance?.tinyTriangle && "tiny-triangle",
                         stretch && "stretch", pointer && "pointer")}
                     onpointerdown={(event: PointerEvent) => {
@@ -66,7 +67,7 @@ export const MenuButton =
                     const rect = button.getBoundingClientRect()
                     const menu = Menu.create(root, groupId)
                     menu.moveTo(rect[horizontal ?? "left"], rect.bottom + Menu.Padding)
-                    menu.attach(button.closest("dialog") ?? Surface.get(button).flyout)
+                    menu.attach(Surface.get(button).flyout)
                     menu.own({terminate: toggle})
                     return Option.wrap(menu)
                 },

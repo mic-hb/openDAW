@@ -23,6 +23,11 @@ import {MetronomeControl} from "@/ui/header/MetronomeControl"
 import {PerformanceStats} from "@/ui/header/PerformanceStats"
 import {BaseFrequencyControl} from "@/ui/header/BaseFrequencyControl"
 import {CaptureMidiButton} from "@/ui/header/CaptureMidiButton"
+import {MidiImportButton} from "@/ui/header/MidiImportButton"
+import {MidiExportButton} from "@/ui/header/MidiExportButton"
+// import {LoraSelector} from "@/ui/header/LoraSelector"
+import {GenerateButton} from "@/ui/header/GenerateButton"
+import {AutomidiMenuButton} from "@/ui/header/AutomidiMenuButton"
 
 const className = Html.adoptStyleSheet(css, "Header")
 
@@ -81,7 +86,7 @@ export const Header = ({lifecycle, service}: Construct) => {
         <header className={className}>
             <MenuButton root={service.menu}
                         appearance={{color: Colors.gray, activeColor: Colors.bright, tinyTriangle: true}}>
-                <h5>openDAW</h5>
+                <h5>AutoMIDI</h5>
             </MenuButton>
             <MenuButton root={MenuItem.root()
                 .setRuntimeChildrenProcedure(parent =>
@@ -104,23 +109,32 @@ export const Header = ({lifecycle, service}: Construct) => {
                     <Icon symbol={IconSymbol.Midi}/>
                 </Checkbox>
                 <CaptureMidiButton lifecycle={lifecycle} service={service}/>
+                {MidiImportButton({lifecycle, service})}
+                {MidiExportButton({lifecycle, service})}
             </div>
             <hr/>
-            <TransportGroup lifecycle={lifecycle} service={service}/>
-            <hr/>
-            <TimeStateDisplay lifecycle={lifecycle} service={service}/>
-            <BaseFrequencyControl lifecycle={lifecycle} service={service}/>
-            <hr/>
-            <MetronomeControl lifecycle={lifecycle}
-                              service={service}
-                              preferences={preferences}/>
-            <hr/>
+            <div style={{display: "flex", columnGap: "12px", marginLeft: "12px"}}>
+                {/* {LoraSelector({lifecycle, service})} */}
+                {AutomidiMenuButton({lifecycle, service})}
+                {GenerateButton({lifecycle, service})}
+            </div>
+            
             <div style={{flex: "1 0 0"}}/>
+            
+            <div style={{position: "absolute", left: "50%", transform: "translateX(-50%)", display: "flex", placeItems: "center", columnGap: "16px"}}>
+                <TransportGroup lifecycle={lifecycle} service={service}/>
+                <TimeStateDisplay lifecycle={lifecycle} service={service}/>
+                <div style={{display: "flex", columnGap: "8px"}}>
+                    <BaseFrequencyControl lifecycle={lifecycle} service={service}/>
+                    <MetronomeControl lifecycle={lifecycle} service={service} preferences={preferences}/>
+                </div>
+            </div>
             {
                 location.origin.includes("dev.opendaw.studio")
                 && (<h5 style={{color: Colors.cream.toString()}}>DEV VERSION (UNSTABLE)</h5>)}
             <div style={{flex: "2 0 0"}}/>
-            <HorizontalPeakMeter lifecycle={lifecycle} peaksInDb={peaksInDb} width="4em"/>
+            <hr/>
+            <HorizontalPeakMeter lifecycle={lifecycle} peaksInDb={peaksInDb} width="12em"/>
             <hr/>
             <div className="panel-selector">
                 <RadioGroup lifecycle={lifecycle}

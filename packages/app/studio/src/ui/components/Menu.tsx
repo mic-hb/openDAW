@@ -1,5 +1,5 @@
 import css from "./Menu.sass?inline"
-import {DefaultMenuData, HeaderMenuData, InputValueMenuData, MenuItem} from "@opendaw/studio-core"
+import {DefaultMenuData, HeaderMenuData, InputTextMenuData, InputValueMenuData, MenuItem} from "@opendaw/studio-core"
 import {createElement, Frag} from "@opendaw/lib-jsx"
 import {int, isDefined, Lifecycle, Nullable, Option, panic, Terminable, Terminator} from "@opendaw/lib-std"
 import {Icon} from "@/ui/components/Icon.tsx"
@@ -64,6 +64,39 @@ export const ValueSliderMenuDataElement = (
     )
 }
 
+export const InputTextMenuDataElement = ({data, menu}: { data: InputTextMenuData, menu: Menu }) => {
+    return (
+        <div className="input-text" style={{padding: "4px 8px"}}
+             onpointerup={e => e.stopPropagation()}
+             onpointerdown={e => e.stopPropagation()}>
+            <input type="text" placeholder={data.placeholder} data-close-on-blur={true}
+                   onInit={element => setTimeout(() => element.focus(), 50)}
+                   onkeydown={e => {
+                       e.stopPropagation();
+                       if (e.key === "Enter" && data.onEnter) {
+                           data.onEnter((e.currentTarget as HTMLInputElement).value)
+                           menu.terminate()
+                       }
+                   }}
+                   oninput={e => {
+                       if (data.onInput) {
+                           data.onInput((e.currentTarget as HTMLInputElement).value)
+                       }
+                   }}
+                   style={{
+                       width: "100%",
+                       background: "var(--input-background, transparent)",
+                       color: "inherit",
+                       border: "1px solid var(--border-color, #444)",
+                       borderRadius: "4px",
+                       padding: "4px 8px",
+                       outline: "none"
+                   }}
+            />
+        </div>
+    )
+}
+
 type MenuHtmlStructure = {
     element: HTMLElement
     scrollUp: HTMLElement
@@ -99,8 +132,6 @@ export class Menu implements Terminable, Lifecycle {
 
     #x: int = 0
     #y: int = 0
-    #originX: int = 0
-    #originY: int = 0
 
     private constructor(parent: Option<Menu>, item: MenuItem, groupId: string) {
         this.#terminator = new Terminator()
@@ -138,19 +169,10 @@ export class Menu implements Terminable, Lifecycle {
     moveTo(x: int, y: int): void {
         this.#x = x | 0
         this.#y = y | 0
-        this.#element.style.transform = `translate(${this.#x - this.#originX}px, ${this.#y - this.#originY}px)`
+        this.#element.style.transform = `translate(${this.#x}px, ${this.#y}px)`
     }
 
     attach(parentElement: Element): void {
-        if (this.#parent.isEmpty() && parentElement.localName === "dialog") {
-            const rect = parentElement.getBoundingClientRect()
-            const style = getComputedStyle(parentElement)
-            this.#originX = (rect.left + parseFloat(style.borderLeftWidth)) | 0
-            this.#originY = (rect.top + parseFloat(style.borderTopWidth)) | 0
-            this.#element.style.position = "absolute"
-            this.#element.style.inset = "0 auto auto 0"
-            this.moveTo(this.#x, this.#y)
-        }
         parentElement.appendChild(this.#element)
         const {right, bottom, width, height} = this.#element.getBoundingClientRect()
         const owner = Surface.get(parentElement).owner
@@ -263,6 +285,8 @@ export class Menu implements Terminable, Lifecycle {
                                     return <DefaultMenuDataElement data={item.data}/>
                                 } else if (item.data.type === "input-value") {
                                     return <ValueSliderMenuDataElement data={item.data} lifecycle={this}/>
+                                } else if (item.data.type === "input-text") {
+                                    return <InputTextMenuDataElement data={item.data} menu={this}/>
                                 }
                             })()}
                         </div>
@@ -272,6 +296,9 @@ export class Menu implements Terminable, Lifecycle {
                     }
                     if (hasChildren) {
                         itemElement.classList.add("has-children")
+                    }
+                    if (item.className) {
+                        itemElement.classList.add(...item.className.split(" ").filter(Boolean))
                     }
                     itemElement.onpointerenter = () => this.#onPointerEnter(item, itemElement)
                     itemElement.onpointerleave = (event: PointerEvent) => this.#onPointerLeave(item, itemElement, event)

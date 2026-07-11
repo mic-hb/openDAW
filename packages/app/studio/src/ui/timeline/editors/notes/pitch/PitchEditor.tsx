@@ -42,6 +42,9 @@ import {PPQN, ppqn} from "@opendaw/lib-dsp"
 import {Surface} from "@/ui/surface/Surface"
 import {NoteEditorShortcuts} from "@/ui/shortcuts/NoteEditorShortcuts"
 import {ContentEditorShortcuts} from "@/ui/shortcuts/ContentEditorShortcuts"
+import {StudioService} from "@/service/StudioService"
+import {AutomidiRegionDrawModifier} from "@/ui/automidi/RegionDrawIntegration"
+import {RegionDrawTool} from "@/ui/automidi/RegionDrawTool"
 
 const className = Html.adoptStyleSheet(css, "PitchEditor")
 
@@ -53,6 +56,7 @@ const CursorMap = {
 
 type Construct = {
     lifecycle: Lifecycle
+    service: StudioService
     project: Project
     boxAdapters: BoxAdapters
     range: TimelineRange
@@ -66,7 +70,7 @@ type Construct = {
 }
 
 export const PitchEditor = ({
-                                lifecycle, project, boxAdapters, range, snapping,
+                                lifecycle, service, project, boxAdapters, range, snapping,
                                 positioner, scale, selection, modifyContext, reader, stepRecording
                             }: Construct) => {
     let previewNote: Nullable<{ pitch: byte, position: ppqn, duration: ppqn, velocity: unitValue }> = null
@@ -102,6 +106,56 @@ export const PitchEditor = ({
         installAutoScroll(canvas, (_deltaX, deltaY) => {
             if (deltaY !== 0) {positioner.moveBy(deltaY * 0.05)}
         }, {padding: Config.AutoScrollPadding}),
+        Dragging.attach(canvas, (event: PointerEvent) => {
+            if (service.automidi.status.getValue() !== "awaiting-region") {return Option.None}
+            const trackIdOption = reader.trackBoxAdapter
+                .map(adapter => UUID.toString(adapter.box.address.uuid))
+            if (trackIdOption.isEmpty()) {return Option.None}
+            const trackId = trackIdOption.unwrap()
+            const modifier = new AutomidiRegionDrawModifier(
+                range,
+                snapping,
+                () => canvas.getBoundingClientRect().left,
+                () => {
+                    const box = project.rootBox.timeline.targetVertex.unwrapOrNull()?.box
+                    if (!box) return 4
+                    return (box as any).signature?.nominator?.getValue() || 4
+                },
+                () => trackId,
+                (rect) => service.automidi.setRegionRect(rect),
+                (commit) => {
+                    const box = project.rootBox.timeline.targetVertex.unwrapOrNull()?.box
+                    const beatsPerBar = box ? ((box as any).signature?.nominator?.getValue() || 4) : 4
+                    void service.automidi.regionCommitted({
+                        ...commit,
+                        beatsPerBar,
+                        highestPitch: 84,
+                        contextTrackIds: [trackId],
+                        targetTrackIds: [trackId],
+                        source: "piano-roll",
+                    })
+                },
+                () => reader.offset
+            )
+            modifier.start(event)
+            return Option.wrap({
+                update: (dragEvent: Dragging.Event) => modifier.update(dragEvent),
+                approve: () => modifier.approve(),
+                cancel: () => modifier.cancel()
+            } satisfies Dragging.Process)
+        }),
+        Events.subscribe(canvas, "pointerdown", (event: PointerEvent) => {
+            if (service.automidi.status.getValue() === "awaiting-region") {
+                event.preventDefault()
+                event.stopImmediatePropagation()
+            }
+        }),
+        Events.subscribe(canvas, "contextmenu", (event: MouseEvent) => {
+            if (service.automidi.status.getValue() === "awaiting-region") {
+                event.preventDefault()
+                event.stopImmediatePropagation()
+            }
+        }),
         Dragging.attach(canvas, event => {
             const target = capturing.captureEvent(event)
             if (target?.type !== "loop-duration") {return Option.None}
@@ -207,6 +261,7 @@ export const PitchEditor = ({
             positioner.scrollModel.moveBy(event.deltaY)
         }, {passive: false}),
         Events.subscribeDblDwn(canvas, event => {
+            if (service.automidi.status.getValue() === "awaiting-region") {return}
             const target = capturing.captureEvent(event)
             if (target === null) {
                 const rect = canvas.getBoundingClientRect()
@@ -216,22 +271,15 @@ export const PitchEditor = ({
                 const pitch = positioner.yToPitch(clientY)
                 const absolutePulse = reader.position + pulse
                 const duration = snapping.value(absolutePulse)
-                // Create AND select in one modify so the selection is captured in the same undo entry as the create
-                // (#208): a trailing select in its own mark=false modify would be a phantom second history step (two
-                // undos for one note). With the pre-flush removed, any leading SelectionRectangle deselect folds into
-                // this entry too, so the whole placement is a single undo step.
-                const boxOpt = editing.modify(() => {
-                    const box = NoteEventBox.create(project.boxGraph, UUID.generate(), box => {
-                        box.position.setValue(pulse)
-                        box.pitch.setValue(pitch)
-                        box.duration.setValue(duration)
-                        box.events.refer(reader.content.box.events)
-                    })
-                    selection.deselectAll()
-                    selection.select(boxAdapters.adapterFor(box, NoteEventBoxAdapter))
-                    return box
-                })
+                const boxOpt = editing.modify(() => NoteEventBox.create(project.boxGraph, UUID.generate(), box => {
+                    box.position.setValue(pulse)
+                    box.pitch.setValue(pitch)
+                    box.duration.setValue(duration)
+                    box.events.refer(reader.content.box.events)
+                }))
                 if (boxOpt.nonEmpty()) {
+                    selection.deselectAll()
+                    selection.select(boxAdapters.adapterFor(boxOpt.unwrap(), NoteEventBoxAdapter))
                     auditionNote(pitch, duration)
                 }
             } else if (target.type !== "loop-duration") {
@@ -317,7 +365,7 @@ export const PitchEditor = ({
             }
         })
     )
-    return (
+    const wrapper = (
         <div className={className} tabIndex={-1}>
             {canvas}
             <Scroller lifecycle={lifecycle}
@@ -326,4 +374,6 @@ export const PitchEditor = ({
             {selectionRectangle}
         </div>
     )
+    RegionDrawTool(service, wrapper as HTMLElement, range, reader.offset)
+    return wrapper
 }

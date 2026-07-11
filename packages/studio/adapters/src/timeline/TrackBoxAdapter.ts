@@ -162,6 +162,8 @@ export class TrackBoxAdapter implements BoxAdapter {
     get regions(): TrackRegions {return this.#regions}
     get enabled(): BooleanField {return this.#box.enabled}
     get indexField(): Int32Field {return this.#box.index}
+    get instrument(): Int32Field {return this.#box.instrument}
+    get color(): Int32Field {return this.#box.color}
     get type(): TrackType {return this.#box.type.getValue()}
     get box(): TrackBox {return this.#box}
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
@@ -207,7 +209,7 @@ export class TrackBoxAdapter implements BoxAdapter {
                 },
                 some: clip => {
                     if (sectionFrom === position) {
-                        if (isInstanceOf(clip, ValueClipBoxAdapter) && !clip.mute) {
+                        if (isInstanceOf(clip, ValueClipBoxAdapter)) {
                             return clip.valueAt(position, fallback)
                         }
                     }

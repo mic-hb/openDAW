@@ -94,6 +94,11 @@ export class Color {
         this.#a = a
     }
 
+    get h(): number { return this.#h }
+    get s(): number { return this.#s }
+    get l(): number { return this.#l }
+    get a(): number { return this.#a }
+
     opacity(alpha: number): Color {
         return new Color(this.#h, this.#s, this.#l, alpha)
     }
@@ -105,21 +110,6 @@ export class Color {
 
     saturate(multiplier: unitValue): Color {
         return new Color(this.#h, this.#s * multiplier, this.#l, this.#a)
-    }
-
-    lerp(other: Color, t: unitValue): Color {
-        const rad = Math.PI / 180.0
-        const ax = this.#s * Math.cos(this.#h * rad)
-        const ay = this.#s * Math.sin(this.#h * rad)
-        const bx = other.#s * Math.cos(other.#h * rad)
-        const by = other.#s * Math.sin(other.#h * rad)
-        const x = ax + (bx - ax) * t
-        const y = ay + (by - ay) * t
-        const h = (Math.atan2(y, x) / rad + 360.0) % 360.0
-        const s = Math.sqrt(x * x + y * y)
-        const l = this.#l + (other.#l - this.#l) * t
-        const a = this.#a + (other.#a - this.#a) * t
-        return new Color(h, s, l, a)
     }
 
     fade(shift: number): Color {

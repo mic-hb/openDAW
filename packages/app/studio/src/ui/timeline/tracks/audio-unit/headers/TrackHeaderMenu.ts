@@ -10,11 +10,13 @@ import {
     TransferAudioUnits
 } from "@opendaw/studio-adapters"
 import {DebugMenus} from "@/ui/menu/debug"
+import {installGmInstrumentMenu} from "@/ui/menu/InstrumentMenu"
 import {MidiImport} from "@/ui/timeline/MidiImport.ts"
 import {CaptureMidiBox, TrackBox} from "@opendaw/studio-boxes"
 import {StudioService} from "@/service/StudioService"
 import {MenuCapture} from "@/ui/timeline/tracks/audio-unit/menu/capture"
 import {GlobalShortcuts} from "@/ui/shortcuts/GlobalShortcuts"
+import {LogicTrackColors} from "@opendaw/studio-enums"
 
 export const installTrackHeaderMenu = (service: StudioService,
                                        audioUnitBoxAdapter: AudioUnitBoxAdapter,
@@ -41,6 +43,7 @@ export const installTrackHeaderMenu = (service: StudioService,
                 box.target.refer(audioUnitBoxAdapter.box)
             })
         })),
+
         MenuCapture.createItem(service, audioUnitBoxAdapter,
             trackBoxAdapter, editing, captureDevices.get(audioUnitBoxAdapter.uuid)),
         MenuItem.default({
@@ -170,4 +173,23 @@ export const installTrackHeaderMenu = (service: StudioService,
         })),
         DebugMenus.debugBox(audioUnitBoxAdapter.box)
     )
+}
+
+export const installTrackColorMenu = (service: StudioService, trackBoxAdapter: TrackBoxAdapter): Procedure<MenuItem> => parent => {
+    const {project: {editing}} = service
+    LogicTrackColors.forEach((_, index) => {
+        parent.addMenuItem(
+            MenuItem.default({
+                label: `Color ${index + 1}`,
+                checked: trackBoxAdapter.color.getValue() === index
+            }).setTriggerProcedure(() => editing.modify(() => trackBoxAdapter.color.setValue(index)))
+        )
+    })
+    return parent
+}
+
+export const installTrackInstrumentMenu = (service: StudioService, trackBoxAdapter: TrackBoxAdapter): Procedure<MenuItem> => {
+    const {project: {editing}} = service
+    return installGmInstrumentMenu(trackBoxAdapter.instrument.getValue(),
+        (program: number) => editing.modify(() => trackBoxAdapter.instrument.setValue(program)))
 }
