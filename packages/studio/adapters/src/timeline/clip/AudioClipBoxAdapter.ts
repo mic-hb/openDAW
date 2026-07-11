@@ -21,7 +21,7 @@ import {
 import {AudioClipBox} from "@opendaw/studio-boxes"
 import {Address, Int32Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
 import {ClipBoxAdapter, ClipBoxAdapterVisitor} from "../ClipBoxAdapter"
-import {Pointers} from "@opendaw/studio-enums"
+import {LogicTrackColors, Pointers} from "@opendaw/studio-enums"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
@@ -125,7 +125,14 @@ export class AudioClipBoxAdapter implements AudioContentBoxAdapter, ClipBoxAdapt
     get duration(): ppqn {return this.#durationConverter.toPPQN(0)}
     set duration(value: ppqn) {this.#durationConverter.fromPPQN(value, 0)}
     get mute(): boolean {return this.#box.mute.getValue()}
-    get hue(): int {return this.#box.hue.getValue()}
+    get hue(): int {
+        return this.trackBoxAdapter
+            .map(track => {
+                const colorIndex = track.color.getValue()
+                return colorIndex < LogicTrackColors.length ? LogicTrackColors[colorIndex].h : 0
+            })
+            .unwrapOrElse(this.#box.hue.getValue())
+    }
     get gain(): MutableObservableValue<number> {return this.#box.gain}
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}
     get optFile(): Option<AudioFileBoxAdapter> {return this.#fileAdapter}

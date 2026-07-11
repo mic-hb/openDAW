@@ -121,6 +121,7 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                                 box.duration.setValue(clip.duration)
                                 box.loopOffset.setValue(0)
                                 box.loopDuration.setValue(clip.duration)
+                                box.eventOffset.setValue(0)
                                 box.hue.setValue(clip.hue)
                                 box.label.setValue(clip.label)
                                 box.mute.setValue(clip.mute)

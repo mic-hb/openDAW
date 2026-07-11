@@ -25,7 +25,8 @@ export const NoteEventBox: BoxSchema<Pointers> = {
                 type: "float32", name: "cent",
                 value: 0, constraints: {min: -50.0, max: 50.0, scaling: "linear"}, unit: "ct"
             },
-            25: {type: "int32", name: "chance", value: 100, constraints: {min: 0, max: 100}, unit: ""} // [1...100]
+            25: {type: "int32", name: "chance", value: 100, constraints: {min: 0, max: 100}, unit: ""}, // [1...100]
+            26: {type: "boolean", name: "isGhost", value: false}
         }
     }, pointerRules: {accepts: [Pointers.Selection, Pointers.NoteEventFeature], mandatory: false}
 }

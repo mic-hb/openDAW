@@ -1,5 +1,5 @@
 import css from "./Menu.sass?inline"
-import {DefaultMenuData, HeaderMenuData, InputValueMenuData, MenuItem} from "@opendaw/studio-core"
+import {DefaultMenuData, HeaderMenuData, InputTextMenuData, InputValueMenuData, MenuItem} from "@opendaw/studio-core"
 import {createElement, Frag} from "@opendaw/lib-jsx"
 import {int, isDefined, Lifecycle, Nullable, Option, panic, Terminable, Terminator} from "@opendaw/lib-std"
 import {Icon} from "@/ui/components/Icon.tsx"
@@ -60,6 +60,39 @@ export const ValueSliderMenuDataElement = (
             }}/>
             {valueLabel}
             {unitLabel}
+        </div>
+    )
+}
+
+export const InputTextMenuDataElement = ({data, menu}: { data: InputTextMenuData, menu: Menu }) => {
+    return (
+        <div className="input-text" style={{padding: "4px 8px"}}
+             onpointerup={e => e.stopPropagation()}
+             onpointerdown={e => e.stopPropagation()}>
+            <input type="text" placeholder={data.placeholder} data-close-on-blur={true}
+                   onInit={element => setTimeout(() => element.focus(), 50)}
+                   onkeydown={e => {
+                       e.stopPropagation();
+                       if (e.key === "Enter" && data.onEnter) {
+                           data.onEnter((e.currentTarget as HTMLInputElement).value)
+                           menu.terminate()
+                       }
+                   }}
+                   oninput={e => {
+                       if (data.onInput) {
+                           data.onInput((e.currentTarget as HTMLInputElement).value)
+                       }
+                   }}
+                   style={{
+                       width: "100%",
+                       background: "var(--input-background, transparent)",
+                       color: "inherit",
+                       border: "1px solid var(--border-color, #444)",
+                       borderRadius: "4px",
+                       padding: "4px 8px",
+                       outline: "none"
+                   }}
+            />
         </div>
     )
 }
@@ -252,6 +285,8 @@ export class Menu implements Terminable, Lifecycle {
                                     return <DefaultMenuDataElement data={item.data}/>
                                 } else if (item.data.type === "input-value") {
                                     return <ValueSliderMenuDataElement data={item.data} lifecycle={this}/>
+                                } else if (item.data.type === "input-text") {
+                                    return <InputTextMenuDataElement data={item.data} menu={this}/>
                                 }
                             })()}
                         </div>
@@ -261,6 +296,9 @@ export class Menu implements Terminable, Lifecycle {
                     }
                     if (hasChildren) {
                         itemElement.classList.add("has-children")
+                    }
+                    if (item.className) {
+                        itemElement.classList.add(...item.className.split(" ").filter(Boolean))
                     }
                     itemElement.onpointerenter = () => this.#onPointerEnter(item, itemElement)
                     itemElement.onpointerleave = (event: PointerEvent) => this.#onPointerLeave(item, itemElement, event)

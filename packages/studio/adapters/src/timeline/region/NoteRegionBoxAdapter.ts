@@ -13,7 +13,7 @@ import {
     UUID
 } from "@opendaw/lib-std"
 import {Address, Field, Propagation, Update} from "@opendaw/lib-box"
-import {Pointers} from "@opendaw/studio-enums"
+import {LogicTrackColors, Pointers} from "@opendaw/studio-enums"
 import {NoteEventCollectionBox, NoteRegionBox} from "@opendaw/studio-boxes"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {LoopableRegionBoxAdapter, RegionBoxAdapter, RegionBoxAdapterVisitor} from "../RegionBoxAdapter"
@@ -149,7 +149,14 @@ export class NoteRegionBoxAdapter
     resolveComplete(position: ppqn): ppqn {return position + this.duration}
     resolveLoopDuration(_position: ppqn): ppqn {return this.loopDuration}
     get mute(): boolean {return this.#box.mute.getValue()}
-    get hue(): int {return this.#box.hue.getValue()}
+    get hue(): int {
+        return this.trackBoxAdapter
+            .map(track => {
+                const colorIndex = track.color.getValue()
+                return colorIndex < LogicTrackColors.length ? LogicTrackColors[colorIndex].h : 0
+            })
+            .unwrapOrElse(this.#box.hue.getValue())
+    }
     get hasCollection() {return this.optCollection.nonEmpty()}
     get optCollection(): Option<NoteEventCollectionBoxAdapter> {
         return this.#box.events.targetVertex

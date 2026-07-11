@@ -10,6 +10,7 @@ import {AudioUnitsTimeline} from "./tracks/audio-unit/AudioUnitsTimeline.tsx"
 import {ClipsHeader} from "@/ui/timeline/tracks/audio-unit/clips/ClipsHeader.tsx"
 import {ppqn} from "@opendaw/lib-dsp"
 import {deferNextFrame, Html} from "@opendaw/lib-dom"
+import {RegionDrawTool} from "@/ui/automidi/RegionDrawTool"
 
 const className = Html.adoptStyleSheet(css, "Timeline")
 
@@ -36,6 +37,35 @@ export const Timeline = ({lifecycle, service}: Construct) => {
             {tracksFooter}
         </div>
     )
+    const automidiOverlay = document.createElement("div")
+    automidiOverlay.className = "automidi-timeline-overlay"
+    element.appendChild(automidiOverlay)
+    RegionDrawTool(service, automidiOverlay, service.timeline.range)
+
+    // "Draw a region" hint overlay shown while status === "awaiting-region"
+    const awaitingOverlay = document.createElement("div")
+    awaitingOverlay.className = "automidi-awaiting-overlay hidden"
+    const awaitingText = document.createElement("div")
+    awaitingText.className = "automidi-awaiting-text"
+    const awaitingIcon = document.createElement("span")
+    awaitingIcon.className = "automidi-awaiting-text-icon"
+    awaitingIcon.textContent = "⬚"
+    awaitingText.appendChild(awaitingIcon)
+    const awaitingTextLabel = document.createElement("span")
+    awaitingTextLabel.textContent = "Draw a region"
+    awaitingText.appendChild(awaitingTextLabel)
+    const awaitingHint = document.createElement("div")
+    awaitingHint.className = "automidi-awaiting-hint"
+    awaitingHint.textContent = "Drag on the timeline or piano roll to select a region · Esc to cancel"
+    awaitingOverlay.appendChild(awaitingText)
+    awaitingOverlay.appendChild(awaitingHint)
+    element.appendChild(awaitingOverlay)
+    lifecycle.own(service.automidi.status.subscribe(() => {
+        const status = service.automidi.status.getValue()
+        const isAwaiting = status === "awaiting-region"
+        awaitingOverlay.classList.toggle("hidden", !isAwaiting)
+        element.classList.toggle("automidi-awaiting-cursor", isAwaiting)
+    }))
     const updateRecordingState = () =>
         element.classList.toggle("recording", engine.isRecording.getValue() || engine.isCountingIn.getValue())
     const {request} = lifecycle.own(deferNextFrame(() =>

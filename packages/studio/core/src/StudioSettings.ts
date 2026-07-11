@@ -67,6 +67,17 @@ export const StudioSettingsSchema = z.object({
         "auto-delete-orphaned-samples": z.boolean()
     }).default({
         "auto-delete-orphaned-samples": false
+    }),
+    "midi-import": z.object({
+        "mode": z.enum(["append", "override"]),
+        "auto-assign-gm": z.boolean(),
+        "auto-assign-soundfont": z.boolean(),
+        "default-soundfont-uuid": z.string().nullable()
+    }).default({
+        "mode": "override",
+        "auto-assign-gm": true,
+        "auto-assign-soundfont": true,
+        "default-soundfont-uuid": null
     })
 })
 

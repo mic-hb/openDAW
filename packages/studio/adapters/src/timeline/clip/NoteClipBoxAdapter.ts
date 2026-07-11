@@ -14,6 +14,7 @@ import {
 } from "@opendaw/lib-std"
 import {EventCollection, ppqn, PPQN} from "@opendaw/lib-dsp"
 import {Address, Int32Field, Propagation, Update} from "@opendaw/lib-box"
+import {LogicTrackColors, Pointers} from "@opendaw/studio-enums"
 import {NoteClipBox} from "@opendaw/studio-boxes"
 import {NoteEventCollectionBoxAdapter} from "../collection/NoteEventCollectionBoxAdapter"
 import {ClipBoxAdapter, ClipBoxAdapterVisitor} from "../ClipBoxAdapter"
@@ -103,7 +104,14 @@ export class NoteClipBoxAdapter implements ClipBoxAdapter<NoteEventCollectionBox
     get indexField(): Int32Field {return this.#box.index}
     get duration(): ppqn {return this.#box.duration.getValue()}
     get mute(): boolean {return this.#box.mute.getValue()}
-    get hue(): int {return this.#box.hue.getValue()}
+    get hue(): int {
+        return this.trackBoxAdapter
+            .map(track => {
+                const colorIndex = track.color.getValue()
+                return colorIndex < LogicTrackColors.length ? LogicTrackColors[colorIndex].h : 0
+            })
+            .unwrapOrElse(this.#box.hue.getValue())
+    }
     get events(): Option<EventCollection<NoteEventBoxAdapter>> {
         return this.optCollection.map(collection => collection.events)
     }

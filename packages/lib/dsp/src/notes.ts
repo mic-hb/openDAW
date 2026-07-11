@@ -7,6 +7,7 @@ export interface NoteEvent extends EventSpan {
     get pitch(): int
     get cent(): number
     get velocity(): unitValue
+    readonly isGhost?: boolean
 }
 
 export namespace NoteEvent {

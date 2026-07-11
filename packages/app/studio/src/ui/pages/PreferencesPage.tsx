@@ -32,7 +32,7 @@ export const PreferencesPage: PageFactory<StudioService> = ({lifecycle, service}
                         <span>(Changes are applied immediately)</span>
                     </div>
                     <PreferencePanel lifecycle={lifecycle}
-                                     preferences={StudioPreferences}
+                                     preferences={StudioPreferences as any}
                                      labels={PreferencesPageLabels.StudioSettingsLabels}
                                      options={PreferencesPageLabels.StudioSettingsOptions}/>
                 </section>

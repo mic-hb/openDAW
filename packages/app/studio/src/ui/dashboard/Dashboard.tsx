@@ -17,15 +17,17 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
     return (
         <div className={className}>
             <article>
-                <h1>Welcome to openDAW</h1>
+                <h1>Welcome to AutoMIDI</h1>
                 <h2>A new holistic exploration of music creation inside your browser</h2>
                 <p style={{margin: "0.5em 0 0 0"}}>
-                    openDAW is an open source web based music studio with a clear focus on <a
+                    AutoMIDI is an open source web based music studio forked from openDAW with the integration of AI features.
+                    openDAW has a clear focus on <a
                     href="https://opendaw.org/education" target="education">education</a> and <LocalLink
                     href="/privacy">data privacy</LocalLink>,
                     open to everyone with no login required so you can start creating <a
-                    href="https://music.opendaw.studio/" target="music">music</a> right away. The studio is still
-                    evolving and not production ready yet.
+                    href="https://music.opendaw.studio/" target="music">music</a> right away.
+                    AutoMIDI is a work of undergraduate thesis by Michael H.
+                    The studio is still evolving and not production ready yet.
                 </p>
                 <div className="columns">
                     <DemoProjects lifecycle={lifecycle} service={service}/>

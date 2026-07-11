@@ -1,14 +1,14 @@
 @use "@/colors"
 
-component
+html.automidi component
   display: flex
 
   &.midi, .midi &, &.automated, .automated &
     border-radius: 0.125em
-    background-color: rgba(white, 0.02)
+    background-color: var(--automidi-surface-2)
 
   &.midi, .midi &
-    box-shadow: 0 0 1px 0 var(--color-orange)
+    box-shadow: 0 0 1px 0 var(--automidi-warning)
 
   &.automated, .automated &
-    box-shadow: 0 0 1px 0 var(--color-blue)
+    box-shadow: 0 0 1px 0 var(--automidi-accent)

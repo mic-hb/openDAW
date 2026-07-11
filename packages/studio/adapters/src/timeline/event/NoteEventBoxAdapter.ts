@@ -66,7 +66,14 @@ export class NoteEventBoxAdapter implements NoteEvent, BoxAdapter, Selectable {
     get pitch(): int {return this.#box.pitch.getValue()} // 0...127
     get cent(): number {return this.#box.cent.getValue()} // -50.0...+50.0
     get chance(): int {return this.#box.chance.getValue()} // 0...100%
-    get playCount(): int {return this.#box.playCount.getValue()} // 1...16
+    get playCount(): int {
+        return this.#box.playCount.getValue()
+    }
+
+    get isGhost(): boolean {
+        return this.#box.isGhost.getValue()
+    }
+
     get playCurve(): int {return this.#box.playCurve.getValue()} // -1...+1
     get isSelected(): boolean {return this.#isSelected}
     get collection(): Option<NoteEventCollectionBoxAdapter> {

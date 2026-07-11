@@ -113,6 +113,7 @@ export const NoteEditor =
         const pitchBody: HTMLElement = (
             <div className="pitch-body">
                 <PitchEditor lifecycle={lifecycle}
+                             service={service}
                              project={project}
                              boxAdapters={boxAdapters}
                              range={range}

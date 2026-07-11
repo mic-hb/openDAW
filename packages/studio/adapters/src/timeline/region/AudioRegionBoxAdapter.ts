@@ -19,7 +19,7 @@ import {
 } from "@opendaw/lib-std"
 import {EventCollection, ppqn, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
-import {Pointers} from "@opendaw/studio-enums"
+import {LogicTrackColors, Pointers} from "@opendaw/studio-enums"
 import {AudioRegionBox} from "@opendaw/studio-boxes"
 import {LoopableRegionBoxAdapter, RegionBoxAdapter, RegionBoxAdapterVisitor} from "../RegionBoxAdapter"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
@@ -183,7 +183,14 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
     resolveLoopDuration(position: ppqn): ppqn {return this.#loopDurationConverter.toPPQN(position)}
     get offset(): ppqn {return this.position - this.loopOffset}
     get mute(): boolean {return this.#box.mute.getValue()}
-    get hue(): int {return this.#box.hue.getValue()}
+    get hue(): int {
+        return this.trackBoxAdapter
+            .map(track => {
+                const colorIndex = track.color.getValue()
+                return colorIndex < LogicTrackColors.length ? LogicTrackColors[colorIndex].h : 0
+            })
+            .unwrapOrElse(this.#box.hue.getValue())
+    }
     get gain(): MutableObservableValue<number> {return this.#box.gain}
     get fading(): FadingAdapter {return this.#fadingAdapter}
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}

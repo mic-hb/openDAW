@@ -1,0 +1,266 @@
+component
+  font-family: var(--automidi-font-sans)
+  color: var(--automidi-text-1)
+  width: 420px
+  max-height: 90vh
+  overflow-y: auto
+  display: flex
+  flex-direction: column
+
+  .pd-header
+    padding: 24px 24px 0
+    .pd-title
+      display: flex
+      align-items: center
+      gap: 8px
+    .pd-mode-icon
+      font-size: 18px
+    .pd-mode-name
+      font-size: 18px
+      font-weight: 700
+    .pd-subtitle
+      margin: 4px 0 12px
+      font-size: 12px
+      color: var(--automidi-text-3)
+
+  .region-badge
+    display: inline-block
+    border: 1px solid
+    border-radius: var(--automidi-radius-md)
+    padding: 5px 12px
+    font-size: 12px
+    font-weight: 500
+    margin-bottom: 4px
+
+  .pd-body
+    padding: 12px 24px
+    flex: 1
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+    gap: 20px
+
+  .pd-section
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  .pd-section-header
+    display: flex
+    justify-content: space-between
+    align-items: center
+
+  .pd-section-title
+    font-size: 13px
+    font-weight: 600
+    color: var(--automidi-text-1)
+
+  .param-value
+    font-size: 13px
+    font-weight: 600
+    color: var(--automidi-text-1)
+
+  .pd-slider-row
+    display: flex
+    align-items: center
+    gap: 8px
+
+  .slider-hint
+    font-size: 11px
+    color: var(--automidi-text-3)
+    white-space: nowrap
+
+  .automidi-range-input
+    flex: 1
+    accent-color: var(--automidi-accent)
+    height: 4px
+
+  .pd-hint
+    margin: 0
+    font-size: 11px
+    color: var(--automidi-text-3)
+    line-height: 1.5
+
+  .num-var-buttons
+    display: flex
+    gap: 8px
+
+  .var-btn
+    width: 40px
+    height: 40px
+    border-radius: var(--automidi-radius-md)
+    border: 1px solid var(--automidi-border)
+    background: var(--automidi-surface-2)
+    color: var(--automidi-text-2)
+    font-size: 14px
+    font-weight: 600
+    cursor: pointer
+    transition: all 0.1s ease
+    &:hover
+      background: var(--automidi-surface-3)
+      border-color: var(--active-color, var(--automidi-accent))
+    &.active
+      background: var(--active-color, var(--automidi-accent))
+      border-color: var(--active-color, var(--automidi-accent))
+      color: #000
+
+  .param-select
+    background: var(--automidi-surface-2)
+    color: var(--automidi-text-1)
+    border: 1px solid var(--automidi-border)
+    border-radius: var(--automidi-radius-md)
+    padding: 8px 12px
+    font-size: 13px
+    width: 100%
+    &:focus
+      outline: none
+      border-color: var(--automidi-accent)
+
+  .track-selection-grid
+    display: flex
+    flex-direction: column
+    gap: 2px
+    border: 1px solid var(--automidi-border)
+    border-radius: var(--automidi-radius-md)
+    overflow: hidden
+
+  .track-grid-header
+    display: grid
+    grid-template-columns: 1fr 100px 100px
+    background: var(--automidi-surface-3)
+    padding: 8px 12px
+    font-size: 11px
+    font-weight: 600
+    color: var(--automidi-text-3)
+    text-transform: uppercase
+    letter-spacing: 0.5px
+
+  .track-grid-row
+    display: grid
+    grid-template-columns: 1fr 100px 100px
+    align-items: center
+    padding: 8px 12px
+    border-top: 1px solid var(--automidi-border-soft)
+    background: var(--automidi-surface-2)
+    &:hover
+      background: var(--automidi-surface-3)
+
+  .track-name-cell
+    font-size: 13px
+    color: var(--automidi-text-1)
+    overflow: hidden
+    text-overflow: ellipsis
+
+  .track-check-cell
+    display: flex
+    justify-content: center
+    input[type="checkbox"]
+      accent-color: var(--automidi-accent)
+      width: 16px
+      height: 16px
+      cursor: pointer
+
+  .gm-rows
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  .gm-row
+    display: grid
+    grid-template-columns: 1fr 160px auto
+    align-items: center
+    gap: 8px
+
+  .gm-track-name
+    font-size: 12px
+    overflow: hidden
+    text-overflow: ellipsis
+
+  .gm-select
+    font-size: 12px
+    padding: 5px 8px
+
+  .gm-drum-label
+    display: flex
+    align-items: center
+    gap: 4px
+    font-size: 12px
+    white-space: nowrap
+    cursor: pointer
+
+  .pd-details > summary
+    cursor: pointer
+    list-style: none
+    &::before
+      content: "▶ "
+    &::-webkit-details-marker
+      display: none
+  .pd-details[open] > summary::before
+    content: "▼ "
+
+  .gen-progress
+    background: var(--automidi-surface-2)
+    border: 1px solid var(--automidi-border)
+    border-radius: var(--automidi-radius-md)
+    padding: 10px 14px
+    font-size: 13px
+    color: var(--automidi-text-2)
+    &.hidden
+      display: none
+
+  .gen-error
+    background: rgba(255, 59, 48, 0.1)
+    border: 1px solid var(--automidi-danger)
+    border-radius: var(--automidi-radius-md)
+    padding: 10px 14px
+    font-size: 13px
+    color: var(--automidi-danger)
+    &.hidden
+      display: none
+
+  .pd-footer
+    display: flex
+    align-items: center
+    gap: 10px
+    padding: 16px 24px 20px
+    border-top: 1px solid var(--automidi-border)
+
+  .reset-btn
+    background: transparent
+    border: 1px solid var(--automidi-border)
+    border-radius: var(--automidi-radius-md)
+    color: var(--automidi-text-3)
+    padding: 8px 12px
+    font-size: 16px
+    cursor: pointer
+    &:hover
+      background: var(--automidi-surface-2)
+
+  .cancel-btn
+    flex: 1
+    background: var(--automidi-surface-2)
+    border: 1px solid var(--automidi-border)
+    border-radius: var(--automidi-radius-md)
+    color: var(--automidi-text-1)
+    padding: 10px
+    font-size: 13px
+    font-weight: 500
+    cursor: pointer
+    &:hover
+      background: var(--automidi-surface-3)
+
+  .generate-btn
+    flex: 2
+    background: var(--btn-color, var(--automidi-accent))
+    border: none
+    border-radius: var(--automidi-radius-md)
+    color: #000
+    padding: 10px 18px
+    font-size: 14px
+    font-weight: 700
+    cursor: pointer
+    transition: opacity 0.15s
+    &:hover
+      opacity: 0.85
+    &:active
+      opacity: 0.7

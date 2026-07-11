@@ -1,5 +1,5 @@
 import css from "./RegionsArea.sass?inline"
-import {clamp, DefaultObservableValue, EmptyExec, Lifecycle, Nullable, Option, Unhandled} from "@opendaw/lib-std"
+import {clamp, DefaultObservableValue, EmptyExec, Lifecycle, Nullable, Option, Unhandled, UUID} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CutCursor} from "@/ui/timeline/CutCursor.tsx"
 import {PPQN, ppqn} from "@opendaw/lib-dsp"
@@ -28,6 +28,7 @@ import {AnyDragData} from "@/ui/AnyDragData"
 import {Dialogs} from "@/ui/components/dialogs"
 import {ClipboardManager, ElementCapturing, RegionsClipboard, TimelineRange} from "@opendaw/studio-core"
 import {RegionsShortcuts} from "@/ui/shortcuts/RegionsShortcuts"
+import {AutomidiRegionDrawModifier} from "@/ui/automidi/RegionDrawIntegration"
 
 const className = Html.adoptStyleSheet(css, "RegionsArea")
 
@@ -113,7 +114,66 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
             return true
         }),
         installRegionContextMenu({timelineBox, element, service, capturing, selection: regionSelection, range}),
+        Dragging.attach(element, (e: PointerEvent) => {
+            if (service.automidi.status.getValue() !== "awaiting-region") {return Option.None}
+            const modifier = new AutomidiRegionDrawModifier(
+                service.timeline.range,
+                snapping,
+                () => element.getBoundingClientRect().left,
+                () => timelineBox.signature.nominator.getValue() || 4,
+                (y: number) => {
+                    for (const track of manager.tracks()) {
+                        const rect = track.element.getBoundingClientRect()
+                        if (y >= rect.top && y <= rect.bottom) {
+                            return UUID.toString(track.trackBoxAdapter.box.address.uuid)
+                        }
+                    }
+                    return null
+                },
+                (rect) => {
+                    service.automidi.setRegionRect(rect)
+                },
+                (commit) => {
+                    const ppqnPerBar = (timelineBox.signature.nominator.getValue() || 4) * PPQN.Quarter
+                    const startPpqn = commit.startBar * ppqnPerBar
+                    const endPpqn = commit.endBar * ppqnPerBar
+                    const overlappingTrackIds: string[] = manager.tracks()
+                        .filter(t => {
+                            for (const region of t.trackBoxAdapter.regions.collection.asArray()) {
+                                if (region.complete > startPpqn && region.position < endPpqn) {
+                                    return true
+                                }
+                            }
+                            return false
+                        })
+                        .map(t => UUID.toString(t.trackBoxAdapter.box.address.uuid))
+                    const resolvedTrackIds = overlappingTrackIds.length > 0
+                        ? overlappingTrackIds
+                        : [commit.trackId]
+                    void service.automidi.regionCommitted({
+                        ...commit,
+                        beatsPerBar: timelineBox.signature.nominator.getValue() || 4,
+                        highestPitch: 84,
+                        contextTrackIds: resolvedTrackIds,
+                        targetTrackIds: resolvedTrackIds,
+                        source: "timeline",
+                    })
+                },
+            )
+            modifier.start(e)
+            return Option.wrap({
+                update: (dragEvent: Dragging.Event) => modifier.update(dragEvent),
+                approve: () => modifier.approve(),
+                cancel: () => modifier.cancel()
+            } satisfies Dragging.Process)
+        }),
         Events.subscribe(element, "pointerdown", (event: PointerEvent) => {
+            if (service.automidi.status.getValue() === "awaiting-region") {
+                event.preventDefault()
+                event.stopPropagation()
+                return
+            }
+
             const target = capturing.captureEvent(event)
             timelineFocus.clear()
             if (target === null) {return}

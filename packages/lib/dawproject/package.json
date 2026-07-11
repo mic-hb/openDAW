@@ -25,6 +25,7 @@
   "dependencies": {
     "@opendaw/lib-dsp": "^0.0.85",
     "@opendaw/lib-runtime": "^0.0.80",
+    "@opendaw/lib-std": "^0.0.79",
     "@opendaw/lib-xml": "^0.0.65",
     "jszip": "^3.10.1"
   },

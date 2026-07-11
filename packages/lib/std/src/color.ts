@@ -94,6 +94,11 @@ export class Color {
         this.#a = a
     }
 
+    get h(): number { return this.#h }
+    get s(): number { return this.#s }
+    get l(): number { return this.#l }
+    get a(): number { return this.#a }
+
     opacity(alpha: number): Color {
         return new Color(this.#h, this.#s, this.#l, alpha)
     }

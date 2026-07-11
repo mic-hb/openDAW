@@ -26,7 +26,8 @@
     "@opendaw/lib-box": "^0.0.87",
     "@opendaw/lib-dom": "^0.0.84",
     "@opendaw/lib-runtime": "^0.0.80",
-    "@opendaw/lib-std": "^0.0.79"
+    "@opendaw/lib-std": "^0.0.79",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@opendaw/eslint-config": "^0.0.28",

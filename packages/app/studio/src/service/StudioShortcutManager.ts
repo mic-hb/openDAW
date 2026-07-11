@@ -23,6 +23,8 @@ import {RegionsShortcuts, RegionsShortcutsFactory} from "@/ui/shortcuts/RegionsS
 import {NoteEditorShortcuts, NoteEditorShortcutsFactory} from "@/ui/shortcuts/NoteEditorShortcuts"
 import {SoftwareMIDIShortcuts, SoftwareMIDIShortcutsFactory} from "@/ui/shortcuts/SoftwareMIDIShortcuts"
 import {RouteLocation} from "@opendaw/lib-jsx"
+import {GenerationModeDialog} from "@/ui/automidi/GenerationModeDialog"
+import {GenerationParameterDialog} from "@/ui/automidi/GenerationParameterDialog"
 
 export namespace StudioShortcutManager {
     const localStorageKey = "shortcuts"
@@ -186,7 +188,18 @@ export namespace StudioShortcutManager {
             gc.register(gs["workspace-screen-meter"].shortcut, () => service.runIfProject(() => service.switchScreen("meter"))),
             gc.register(gs["workspace-screen-shadertoy"].shortcut, () => service.runIfProject(() => service.switchScreen("shadertoy"))),
             gc.register(gs["workspace-screen-tap"].shortcut, () => service.runIfProject(() => service.switchScreen("tap"))),
-            gc.register(gs["show-preferences"].shortcut, () => RouteLocation.get().navigateTo("/preferences"))
+            gc.register(gs["show-preferences"].shortcut, () => RouteLocation.get().navigateTo("/preferences")),
+            gc.register(gs["generate-midi"].shortcut, () => {
+                if (!service.hasProfile) {return}
+                const {automidi} = service
+                const status = automidi.status.getValue()
+                if (status === "idle" || status === "failed" || status === "cancelled" || status === "completed") {
+                    automidi.openDialog()
+                    GenerationModeDialog(service)
+                } else if (status === "configuring-parameters") {
+                    GenerationParameterDialog(service)
+                }
+            })
         )
     }
 }

@@ -78,6 +78,8 @@ import {ShadertoyState} from "@/ui/shadertoy/ShadertoyState"
 import {CodeEditorState} from "@/ui/code-editor/CodeEditorState"
 import {RoomAwareness} from "@/service/RoomAwareness"
 import {ChatService} from "@/chat/ChatService"
+import {AutomidiController} from "@/automidi/AutomidiController"
+import {AutomidiApi} from "@/automidi/AutomidiApi"
 
 /**
  * I am just piling stuff after stuff in here to boot the environment.
@@ -116,6 +118,10 @@ export class StudioService implements ProjectEnv {
     readonly recovery = new Recovery(() => this.#projectProfileService.getValue(), this)
     readonly engine = new EngineFacade()
     readonly presets = new PresetService(this)
+    /** The TracksManager created by AudioUnitsTimeline. Set once the timeline
+     * is mounted; consumers like GhostNotesOverlay read it from here. */
+    readonly tracksManager = new DefaultObservableValue<Nullable<import("@/ui/timeline/tracks/audio-unit/TracksManager").TracksManager>>(null)
+    readonly automidi = new AutomidiController(new AutomidiApi())
 
     readonly #softwareKeyboardLifeCycle = new Terminator()
     readonly #signals = new Notifier<StudioSignal>()
@@ -132,6 +138,7 @@ export class StudioService implements ProjectEnv {
     readonly #chatService = new MutableObservableOption<ChatService>()
 
     regionModifierInProgress: boolean = false
+    readonly hiddenAudioUnits: Set<string> = new Set()
 
     constructor(readonly audioContext: AudioContext,
                 readonly audioWorklets: AudioWorklets,
@@ -166,6 +173,8 @@ export class StudioService implements ProjectEnv {
         this.#checkRecovery()
         this.#listenPreferences()
     }
+
+    terminate(): void {this.automidi.terminate()}
 
     get sampleRate(): number {return this.audioContext.sampleRate}
     get sampleService(): SampleService {return this.#sampleService}
@@ -450,6 +459,7 @@ export class StudioService implements ProjectEnv {
             if (isRoot) {this.layout.screen.setValue(null)}
             lifeTime.terminate()
             document.body.classList.toggle("no-project", optProfile.isEmpty())
+            this.automidi.project = optProfile.isEmpty() ? null : optProfile.unwrap().project
             if (optProfile.nonEmpty()) {
                 const profile = optProfile.unwrap()
                 const {project, meta} = profile

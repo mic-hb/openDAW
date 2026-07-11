@@ -141,6 +141,10 @@ export const GlobalShortcutsFactory = ShortcutValidator.validate({
     "show-preferences": {
         shortcut: Shortcut.of(Key.Comma, {ctrl}),
         description: "Open preferences"
+    },
+    "generate-midi": {
+        shortcut: Shortcut.of(Key.KeyG),
+        description: "Open AutoMIDI generation dialog"
     }
 })
 

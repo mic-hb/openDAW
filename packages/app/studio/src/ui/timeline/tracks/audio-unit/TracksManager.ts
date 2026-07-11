@@ -154,6 +154,7 @@ export class TracksManager implements Terminable {
         return Terminable.many(
             rootBoxAdapter.audioUnits.catchupAndSubscribe({
                 onAdd: (audioUnitBoxAdapter: AudioUnitBoxAdapter) => {
+                    if (this.#service.hiddenAudioUnits.has(UUID.toString(audioUnitBoxAdapter.uuid))) return;
                     const audioUnitLifecycle = this.#terminator.spawn()
                     const unitTracks: HTMLElement = AudioUnitTracks({
                         lifecycle: audioUnitLifecycle,

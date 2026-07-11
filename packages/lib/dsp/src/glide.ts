@@ -1,6 +1,10 @@
 import {PPQN, ppqn} from "./ppqn"
 import {int} from "@opendaw/lib-std"
 
+// `sampleRate` is provided by AudioWorkletGlobalScope at runtime; this
+// declaration lets `tsc` type-check the file in the main-thread build.
+declare const sampleRate: number
+
 export class Glide {
     #beginFrequency: number = 0.0
     #currentFrequency: number = NaN

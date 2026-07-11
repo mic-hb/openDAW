@@ -42,6 +42,9 @@ import {PPQN, ppqn} from "@opendaw/lib-dsp"
 import {Surface} from "@/ui/surface/Surface"
 import {NoteEditorShortcuts} from "@/ui/shortcuts/NoteEditorShortcuts"
 import {ContentEditorShortcuts} from "@/ui/shortcuts/ContentEditorShortcuts"
+import {StudioService} from "@/service/StudioService"
+import {AutomidiRegionDrawModifier} from "@/ui/automidi/RegionDrawIntegration"
+import {RegionDrawTool} from "@/ui/automidi/RegionDrawTool"
 
 const className = Html.adoptStyleSheet(css, "PitchEditor")
 
@@ -53,6 +56,7 @@ const CursorMap = {
 
 type Construct = {
     lifecycle: Lifecycle
+    service: StudioService
     project: Project
     boxAdapters: BoxAdapters
     range: TimelineRange
@@ -66,7 +70,7 @@ type Construct = {
 }
 
 export const PitchEditor = ({
-                                lifecycle, project, boxAdapters, range, snapping,
+                                lifecycle, service, project, boxAdapters, range, snapping,
                                 positioner, scale, selection, modifyContext, reader, stepRecording
                             }: Construct) => {
     let previewNote: Nullable<{ pitch: byte, position: ppqn, duration: ppqn, velocity: unitValue }> = null
@@ -102,6 +106,56 @@ export const PitchEditor = ({
         installAutoScroll(canvas, (_deltaX, deltaY) => {
             if (deltaY !== 0) {positioner.moveBy(deltaY * 0.05)}
         }, {padding: Config.AutoScrollPadding}),
+        Dragging.attach(canvas, (event: PointerEvent) => {
+            if (service.automidi.status.getValue() !== "awaiting-region") {return Option.None}
+            const trackIdOption = reader.trackBoxAdapter
+                .map(adapter => UUID.toString(adapter.box.address.uuid))
+            if (trackIdOption.isEmpty()) {return Option.None}
+            const trackId = trackIdOption.unwrap()
+            const modifier = new AutomidiRegionDrawModifier(
+                range,
+                snapping,
+                () => canvas.getBoundingClientRect().left,
+                () => {
+                    const box = project.rootBox.timeline.targetVertex.unwrapOrNull()?.box
+                    if (!box) return 4
+                    return (box as any).signature?.nominator?.getValue() || 4
+                },
+                () => trackId,
+                (rect) => service.automidi.setRegionRect(rect),
+                (commit) => {
+                    const box = project.rootBox.timeline.targetVertex.unwrapOrNull()?.box
+                    const beatsPerBar = box ? ((box as any).signature?.nominator?.getValue() || 4) : 4
+                    void service.automidi.regionCommitted({
+                        ...commit,
+                        beatsPerBar,
+                        highestPitch: 84,
+                        contextTrackIds: [trackId],
+                        targetTrackIds: [trackId],
+                        source: "piano-roll",
+                    })
+                },
+                () => reader.offset
+            )
+            modifier.start(event)
+            return Option.wrap({
+                update: (dragEvent: Dragging.Event) => modifier.update(dragEvent),
+                approve: () => modifier.approve(),
+                cancel: () => modifier.cancel()
+            } satisfies Dragging.Process)
+        }),
+        Events.subscribe(canvas, "pointerdown", (event: PointerEvent) => {
+            if (service.automidi.status.getValue() === "awaiting-region") {
+                event.preventDefault()
+                event.stopImmediatePropagation()
+            }
+        }),
+        Events.subscribe(canvas, "contextmenu", (event: MouseEvent) => {
+            if (service.automidi.status.getValue() === "awaiting-region") {
+                event.preventDefault()
+                event.stopImmediatePropagation()
+            }
+        }),
         Dragging.attach(canvas, event => {
             const target = capturing.captureEvent(event)
             if (target?.type !== "loop-duration") {return Option.None}
@@ -207,6 +261,7 @@ export const PitchEditor = ({
             positioner.scrollModel.moveBy(event.deltaY)
         }, {passive: false}),
         Events.subscribeDblDwn(canvas, event => {
+            if (service.automidi.status.getValue() === "awaiting-region") {return}
             const target = capturing.captureEvent(event)
             if (target === null) {
                 const rect = canvas.getBoundingClientRect()
@@ -310,7 +365,7 @@ export const PitchEditor = ({
             }
         })
     )
-    return (
+    const wrapper = (
         <div className={className} tabIndex={-1}>
             {canvas}
             <Scroller lifecycle={lifecycle}
@@ -319,4 +374,6 @@ export const PitchEditor = ({
             {selectionRectangle}
         </div>
     )
+    RegionDrawTool(service, wrapper as HTMLElement, range, reader.offset)
+    return wrapper
 }

@@ -14,11 +14,13 @@
   "dependencies": {
     "@opendaw/lib-box": "^0.0.87",
     "@opendaw/lib-dsp": "^0.0.85",
+    "@opendaw/lib-fusion": "^0.0.95",
     "@opendaw/lib-runtime": "^0.0.80",
     "@opendaw/lib-std": "^0.0.79",
     "@opendaw/studio-adapters": "^0.0.118",
     "@opendaw/studio-boxes": "^0.0.95",
-    "@opendaw/studio-enums": "^0.0.78"
+    "@opendaw/studio-enums": "^0.0.78",
+    "esbuild": "^0.25.0"
   },
   "devDependencies": {
     "@opendaw/eslint-config": "^0.0.28",

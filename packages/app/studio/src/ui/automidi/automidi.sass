@@ -1,0 +1,374 @@
+html.automidi
+  .automidi-region-overlay
+    position: absolute
+    inset: 0
+    pointer-events: none
+    z-index: 100
+
+  .automidi-region-rect
+    position: absolute
+    top: 0
+    height: 100%
+    background: rgba(129, 140, 248, 0.15)
+    border: 1px dashed var(--automidi-accent)
+    pointer-events: none
+    z-index: 100
+
+
+
+  .automidi-timeline-overlay
+    position: absolute
+    inset: 0
+    grid-column: -2 / -1
+    pointer-events: none
+    z-index: 200
+
+// Modal dialogs — scoped globally so they work regardless of html class
+dialog.automidi-modal
+  background: #1C1C1E
+  border: 1px solid #38383A
+  border-radius: 16px
+  padding: 0
+  color: #FFFFFF
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8)
+  max-width: 90vw
+  max-height: 90vh
+  overflow: hidden
+  &::backdrop
+    background: rgba(0, 0, 0, 0.7)
+    backdrop-filter: blur(4px)
+
+dialog.automidi-param-modal
+  width: 420px
+
+// Floating variation selector
+.automidi-floating-variations
+  position: absolute
+  right: 16px
+  top: 16px
+  width: 320px
+  max-height: calc(100% - 32px)
+  overflow-y: auto
+  background: #1C1C1E
+  border: 1px solid #38383A
+  border-radius: 12px
+  padding: 12px
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6)
+  pointer-events: all
+  z-index: 300
+  display: flex
+  flex-direction: column
+  gap: 10px
+  &.hidden
+    display: none
+  &::-webkit-scrollbar
+    width: 6px
+  &::-webkit-scrollbar-thumb
+    background: #38383A
+    border-radius: 3px
+
+.automidi-var-topbar
+  display: flex
+  align-items: center
+  gap: 8px
+
+.automidi-var-retry-btn
+  flex: 1
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: 6px
+  background: var(--btn-color, #AF52DE)
+  color: #fff
+  border: none
+  border-radius: 8px
+  padding: 8px 12px
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  &:hover
+    filter: brightness(1.1)
+
+.automidi-var-retry-icon
+  font-size: 14px
+
+.automidi-var-close
+  appearance: none
+  border: 1px solid #38383A
+  background: transparent
+  color: #EBEBF599
+  cursor: pointer
+  font-size: 14px
+  line-height: 1
+  width: 32px
+  height: 32px
+  border-radius: 8px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  &:hover
+    background: #2C2C2E
+    color: #EBEBF5
+
+.automidi-var-title-row
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+
+.automidi-var-subtitle
+  display: flex
+  align-items: center
+  gap: 8px
+  font-size: 11px
+  color: #EBEBF599
+  font-variant-numeric: tabular-nums
+
+.automidi-var-mode-dot
+  display: inline-block
+  width: 8px
+  height: 8px
+  border-radius: 50%
+
+.automidi-var-progress-row
+  display: flex
+  align-items: center
+  gap: 8px
+  font-size: 12px
+  color: #EBEBF599
+  font-variant-numeric: tabular-nums
+
+.automidi-var-progress-bar
+  flex: 1
+  height: 4px
+  background: #38383A
+  border-radius: 2px
+  overflow: hidden
+  .automidi-var-progress-fill
+    height: 100%
+    background: #007AFF
+    border-radius: 2px
+    transition: width 0.3s ease
+
+.automidi-var-empty
+  padding: 16px 8px
+  border: 1px dashed #38383A
+  border-radius: 8px
+  text-align: center
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.automidi-var-empty-title
+  font-size: 13px
+  font-weight: 600
+  color: #EBEBF5
+
+.automidi-var-empty-hint
+  font-size: 11px
+  color: #EBEBF599
+  line-height: 1.45
+
+.automidi-var-error
+  padding: 12px
+  border: 1px solid rgba(248, 113, 113, 0.3)
+  border-radius: 8px
+  background: rgba(248, 113, 113, 0.08)
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.automidi-var-error-title
+  font-size: 13px
+  font-weight: 600
+  color: #f87171
+
+.automidi-var-error-msg
+  font-size: 11px
+  color: #EBEBF599
+  line-height: 1.45
+  word-break: break-word
+
+.automidi-var-bottombar
+  display: flex
+  gap: 8px
+
+.automidi-variation-card
+  border: 1px solid #38383A
+  border-radius: 10px
+  padding: 10px 12px
+  cursor: pointer
+  background: #2C2C2E
+  transition: border-color 0.1s ease, background 0.1s ease
+  display: flex
+  flex-direction: column
+  gap: 8px
+  &:hover
+    border-color: #5AC8FA
+  &.selected
+    border-color: #007AFF
+    background: #2C2C2E
+    box-shadow: 0 0 0 1px #007AFF
+
+.automidi-variation-header
+  display: flex
+  align-items: center
+  gap: 10px
+
+.automidi-var-card-play
+  appearance: none
+  border: none
+  background: #007AFF
+  color: #fff
+  width: 32px
+  height: 32px
+  border-radius: 50%
+  cursor: pointer
+  font-size: 13px
+  line-height: 1
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  flex-shrink: 0
+  &:hover
+    background: #0066CC
+
+.automidi-variation-info
+  flex: 1
+  min-width: 0
+  display: flex
+  flex-direction: column
+  gap: 2px
+
+.automidi-variation-title
+  font-size: 13px
+  font-weight: 600
+  color: #EBEBF5
+
+.automidi-variation-meta
+  font-size: 11px
+  color: #EBEBF599
+  font-variant-numeric: tabular-nums
+
+.automidi-variation-confidence
+  display: flex
+  flex-direction: column
+  align-items: flex-end
+  gap: 2px
+  flex-shrink: 0
+
+.automidi-variation-confidence-pct
+  font-size: 13px
+  font-weight: 700
+  color: #EBEBF5
+  font-variant-numeric: tabular-nums
+
+.automidi-variation-card-actions
+  display: flex
+  gap: 6px
+
+.automidi-var-card-accept
+  flex: 1
+  background: transparent
+  border: 1px solid #38383A
+  color: #EBEBF5
+  border-radius: 6px
+  padding: 6px
+  font-size: 12px
+  font-weight: 600
+  cursor: pointer
+  &:hover
+    background: #38383A
+
+.automidi-var-actions-bar
+  display: flex
+  gap: 8px
+  margin-top: 4px
+
+.automidi-var-confirm-btn
+  flex: 1
+  background: #007AFF
+  color: #fff
+  border: none
+  border-radius: 8px
+  padding: 8px
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  &:hover
+    background: #0066CC
+
+.automidi-var-dismiss-btn
+  flex: 1
+  background: #2C2C2E
+  color: #EBEBF5
+  border: 1px solid #38383A
+  border-radius: 8px
+  padding: 8px
+  font-size: 13px
+  font-weight: 600
+  cursor: pointer
+  &:hover
+    background: #38383A
+
+.automidi-var-hint
+  font-size: 10px
+  color: #EBEBF599
+  text-align: center
+  margin-top: 4px
+
+.automidi-awaiting-overlay
+  position: absolute
+  top: 16px
+  left: 50%
+  transform: translateX(-50%)
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 4px
+  padding: 10px 18px
+  background: rgba(28, 28, 30, 0.92)
+  border: 1px solid #38383A
+  border-radius: 12px
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6)
+  pointer-events: none
+  z-index: 250
+  color: #FFFFFF
+  font-family: var(--automidi-font-sans)
+  animation: automidi-awaiting-fade-in 0.18s ease-out
+  &.hidden
+    display: none
+
+.automidi-awaiting-text
+  font-size: 13px
+  font-weight: 600
+  letter-spacing: 0.01em
+  display: flex
+  align-items: center
+  gap: 8px
+
+.automidi-awaiting-text-icon
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 18px
+  height: 18px
+  border: 1.5px dashed var(--automidi-accent)
+  border-radius: 4px
+  color: var(--automidi-accent)
+  font-size: 12px
+  line-height: 1
+
+.automidi-awaiting-hint
+  font-size: 11px
+  color: #EBEBF599
+
+.automidi-awaiting-cursor
+  cursor: crosshair !important
+
+@keyframes automidi-awaiting-fade-in
+  from
+    opacity: 0
+    transform: translateX(-50%) translateY(-4px)
+  to
+    opacity: 1
+    transform: translateX(-50%) translateY(0)

@@ -4,11 +4,10 @@ import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging.
 import {SnapCenter, SnapCommonDecibel} from "@/ui/configs.ts"
 import {Knob} from "@/ui/components/Knob.tsx"
 import {Checkbox} from "@/ui/components/Checkbox.tsx"
-import {Icon} from "@/ui/components/Icon.tsx"
 import {createElement} from "@opendaw/lib-jsx"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper.ts"
 import {AudioUnitBoxAdapter} from "@opendaw/studio-adapters"
-import {Colors, IconSymbol} from "@opendaw/studio-enums"
+import {Colors} from "@opendaw/studio-enums"
 import {AutomationControl} from "@/ui/components/AutomationControl"
 import {Html} from "@opendaw/lib-dom"
 import {CaptureAudio} from "@opendaw/studio-core"
@@ -58,8 +57,8 @@ export const AudioUnitChannelControls = ({lifecycle, service, adapter}: Construc
                            tracks={tracks} parameter={mute}>
             <Checkbox lifecycle={lifecycle}
                       model={EditWrapper.forAutomatableParameter(editing, mute)}
-                      appearance={{activeColor: Colors.orange, framed: true}}>
-                <Icon symbol={IconSymbol.Mute}/>
+                      appearance={{activeColor: Colors.blue, framed: true}}>
+                <span style={{fontSize: "10px", fontWeight: "700", width: "16px", display: "inline-block", textAlign: "center"}}>M</span>
             </Checkbox>
         </AutomationControl>
     )
@@ -69,7 +68,7 @@ export const AudioUnitChannelControls = ({lifecycle, service, adapter}: Construc
             <Checkbox lifecycle={lifecycle}
                       model={EditWrapper.forAutomatableParameter(editing, solo)}
                       appearance={{activeColor: Colors.yellow, framed: true}}>
-                <Icon symbol={IconSymbol.Solo}/>
+                <span style={{fontSize: "10px", fontWeight: "700", width: "16px", display: "inline-block", textAlign: "center"}}>S</span>
             </Checkbox>
         </AutomationControl>
     )
@@ -128,7 +127,7 @@ export const AudioUnitChannelControls = ({lifecycle, service, adapter}: Construc
                             <Button lifecycle={lifecycle}
                                     onClick={({shiftKey}) => captureDevices.setArm(capture, !shiftKey)}
                                     appearance={{activeColor: Colors.red, framed: true}}>
-                                <Icon symbol={IconSymbol.Record}/>
+                                <span style={{fontSize: "10px", fontWeight: "700", width: "16px", display: "inline-block", textAlign: "center"}}>R</span>
                             </Button>)
                         lifecycle.ownAll(
                             TextTooltip.default(button, () => capture.label),

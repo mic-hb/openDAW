@@ -21,6 +21,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@opendaw/lib-dsp": "^0.0.85",
     "@opendaw/lib-fusion": "^0.0.95",
     "@opendaw/lib-runtime": "^0.0.80",
     "@opendaw/lib-std": "^0.0.79",

@@ -15,6 +15,7 @@ export type MenuItemOptions = {
     hidden?: boolean
     selectable?: boolean
     separatorBefore?: boolean
+    className?: string
 }
 
 const Root = {type: "root"} as const
@@ -45,9 +46,16 @@ export type InputValueMenuData = {
     minValueWidth?: string
 }
 
+export type InputTextMenuData = {
+    type: "input-text"
+    placeholder?: string
+    onInput?: (value: string) => void
+    onEnter?: (value: string) => void
+}
+
 export type MenuRootData = typeof Root
 
-export type MenuData = (DefaultMenuData & MenuItemOptions) | MenuRootData | HeaderMenuData | InputValueMenuData
+export type MenuData = (DefaultMenuData & MenuItemOptions) | MenuRootData | HeaderMenuData | InputValueMenuData | InputTextMenuData
 
 export interface MenuCollector {
     addItems(...items: MenuItem[]): void
@@ -68,11 +76,16 @@ export class MenuItem<DATA extends MenuData = MenuData> {
         return this.#create({type: "input-value", ...properties}, properties)
     }
 
+    static inputText(properties: Omit<InputTextMenuData, "type"> & MenuItemOptions) {
+        return this.#create({type: "input-text", ...properties}, properties)
+    }
+
     static #create<D extends MenuData>(data: D, options?: MenuItemOptions): MenuItem<D> {
         return new MenuItem<D>(data, options)
     }
 
     readonly #data: DATA
+    readonly #options?: MenuItemOptions
     readonly #permanentChildren: MenuItem[]
     readonly #runtimeChildren: MenuItem[]
     readonly #collectors: Array<Procedure<MenuCollector>>
@@ -88,6 +101,7 @@ export class MenuItem<DATA extends MenuData = MenuData> {
 
     constructor(data: DATA, options?: MenuItemOptions) {
         this.#data = data
+        this.#options = options
         this.#selectable = options?.selectable ?? true
         this.#hidden = options?.hidden ?? false
         this.#separatorBefore = options?.separatorBefore ?? false
@@ -101,6 +115,7 @@ export class MenuItem<DATA extends MenuData = MenuData> {
     get hidden(): boolean {return this.#hidden}
     get selectable(): boolean {return this.#selectable}
     get separatorBefore(): boolean {return this.#separatorBefore}
+    get className(): string | undefined {return this.#options?.className}
 
     get hasChildren(): boolean {
         return this.#permanentChildren.length > 0 || this.#runtimeChildrenProcedure.nonEmpty() || this.#collectors.length > 0

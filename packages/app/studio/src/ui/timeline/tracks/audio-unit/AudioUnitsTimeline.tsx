@@ -66,6 +66,7 @@ export const AudioUnitsTimeline = ({lifecycle, service}: Construct) => {
         )
     }
     const manager: TracksManager = lifecycle.own(new TracksManager(service, scrollContainer, factory))
+    service.tracksManager.setValue(manager)
     const element: HTMLElement = (
         <div className={className}>
             <HeadersArea lifecycle={lifecycle}

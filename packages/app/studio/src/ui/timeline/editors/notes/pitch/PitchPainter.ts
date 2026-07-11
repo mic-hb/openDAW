@@ -1,4 +1,4 @@
-import {int, linear, Option, Procedure} from "@opendaw/lib-std"
+import {int, Option, Procedure} from "@opendaw/lib-std"
 import {PitchPositioner} from "@/ui/timeline/editors/notes/pitch/PitchPositioner.ts"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {MidiKeys, NoteEvent, ppqn} from "@opendaw/lib-dsp"
@@ -73,14 +73,27 @@ export const createNotePitchPainter =
                     const x1 = unitToX(complete)
                     const y0 = pitchToY(pitch)
                     const xn = Math.max(x1 - x0, 3) // ensure that the note color is coming through the outline
-                    context.fillStyle = selected ? "white" : "black"
-                    context.fillRect(x0, y0 - devicePixelRatio, xn + devicePixelRatio, noteOutlineHeight)
-                    const w = xn - devicePixelRatio
-                    if (w > 0) {
-                        const saturation = strategy.readChance(noteEvent) * 0.50
-                        const opacity = linear(33, 100, strategy.readVelocity(noteEvent) ** 2.0)
-                        context.fillStyle = `hsla(${reader.hue}, ${saturation}%, 50%, ${opacity}%)`
-                        context.fillRect(x0 + devicePixelRatio, y0, w, noteHeight)
+
+                    if (noteEvent.isGhost) {
+                        context.fillStyle = "transparent"
+                        context.strokeStyle = `hsla(${reader.hue}, 80%, 70%, 0.95)`
+                        context.lineWidth = 1
+                        context.setLineDash([4, 4])
+                        context.strokeRect(x0, y0 - devicePixelRatio, xn + devicePixelRatio, noteOutlineHeight)
+                        context.setLineDash([]) // reset
+                    } else {
+                        context.fillStyle = selected ? "white" : "black"
+                        context.fillRect(x0, y0 - devicePixelRatio, xn + devicePixelRatio, noteOutlineHeight)
+                        const w = xn - devicePixelRatio
+                        if (w > 0 && noteHeight > 0) {
+                            context.fillStyle = selected ? "white" : `hsla(${reader.hue}, 60%, 60%, 0.95)`
+                            context.fillRect(x0 + devicePixelRatio, y0, w, noteHeight)
+                            // Draw volume indicator
+                            const velocityVal = Math.max(0.0, Math.min(1.0, strategy.readVelocity(noteEvent)))
+                            const velocityHeight = Math.ceil(noteHeight * velocityVal)
+                            context.fillStyle = selected ? "black" : "rgba(255, 255, 255, 0.45)"
+                            context.fillRect(x0 + devicePixelRatio, y0 + noteHeight - velocityHeight, w, velocityHeight)
+                        }
                     }
                     const ftRange = noteHeight >>> 1
                     const ft = strategy.readCent(noteEvent) / 50.0 * (ftRange - devicePixelRatio * 2)

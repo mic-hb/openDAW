@@ -36,7 +36,8 @@
     "@opendaw/lib-std": "^0.0.79",
     "@opendaw/studio-adapters": "^0.0.118",
     "@opendaw/studio-boxes": "^0.0.95",
-    "@opendaw/studio-enums": "^0.0.78"
+    "@opendaw/studio-enums": "^0.0.78",
+    "tsx": "^4.22.4"
   },
   "devDependencies": {
     "@opendaw/eslint-config": "^0.0.28",
