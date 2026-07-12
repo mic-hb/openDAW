@@ -24,6 +24,7 @@ export const WasmEngineToggle = ({lifecycle, service}: Construct) => {
             return
         }
         WasmEngine.setEnabled(enabled)
+        service.restartEngine()
         RuntimeNotifier.notify({message: enabled ? "WASM engine active" : "TypeScript engine active"})
     }))
     return (

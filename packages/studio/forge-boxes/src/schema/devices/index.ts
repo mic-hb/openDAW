@@ -76,4 +76,4 @@ export const DeviceDefinitions = [
     NoopInstrumentBox,
     CompositeDeviceBox,
     CompositeCellBox
-] 
+]
