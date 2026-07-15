@@ -1,4 +1,4 @@
-# AutoMIDI Modifications Catalog
+# AutoMIDI Changelog
 
 > **Scope:** This document is the canonical index of every modification the AutoMIDI project made on top of upstream `andremichelle/openDAW`. It complements (and replaces, for AutoMIDI-specific content) `docs/component-inventory-frontend.md` and `docs/comprehensive-analysis-frontend.md`, which previously described the deprecated NextJS frontend.
 >
